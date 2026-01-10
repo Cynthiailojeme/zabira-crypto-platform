@@ -6,7 +6,6 @@ import {
   EyeOff,
   Mail,
   Lock,
-  Tag,
   ShieldCheck,
   UserPlus,
 } from "lucide-react";
@@ -20,7 +19,7 @@ import {
 } from "@/app/components/auth/PasswordStrength";
 import { signupSchema } from "@/app/utils/validations";
 
-const promoSlides = [
+export const promoSlides = [
   {
     id: 1,
     content: (
@@ -38,6 +37,68 @@ const promoSlides = [
   },
   {
     id: 2,
+    content: (
+      <div className="relative flex gap-3 p-4 rounded-xl border-2 border-white/18 bg-[linear-gradient(67deg,#3F9906_-90.03%,#C3BC02_-7.9%,#4B9C06_52.41%,#FC0_153.78%)]">
+        <img
+          src="./images/sell-gain-bg.svg"
+          alt="Sell & Gain Background"
+          className="absolute left-0 top-0 bg-no-repeat"
+        />
+        <img src="./images/coins.svg" alt="Coins" className="relative z-10" />
+        <div className="text-white text-base font-bold tracking-[-0.012rem] leading-[1.24rem]">
+          SELL & GAIN up to ₦50 on every <br /> $ Crypto Trade
+        </div>
+      </div>
+    ),
+  },
+    {
+    id: 3,
+    content: (
+      <div className="relative flex gap-3 p-4 rounded-xl border-2 border-[rgba(255,255,255,0.18)] bg-[linear-gradient(93deg,#5B129F_11.27%,#9234EA_75.65%,#521D84_112.1%)]">
+        <div className="text-white text-base font-bold tracking-[-0.012rem] leading-[1.24rem] relative z-10">
+          Speed UP Your Crypto, Gift Card & Bill <br /> Payments
+        </div>
+        <img
+          src="./images/cash.svg"
+          alt="Cash Background"
+          className="absolute right-0 top-0 bg-no-repeat"
+        />
+      </div>
+    ),
+  },
+  {
+    id: 4,
+    content: (
+      <div className="relative flex gap-3 p-4 rounded-xl border-2 border-white/18 bg-[linear-gradient(67deg,#3F9906_-90.03%,#C3BC02_-7.9%,#4B9C06_52.41%,#FC0_153.78%)]">
+        <img
+          src="./images/sell-gain-bg.svg"
+          alt="Sell & Gain Background"
+          className="absolute left-0 top-0 bg-no-repeat"
+        />
+        <img src="./images/coins.svg" alt="Coins" className="relative z-10" />
+        <div className="text-white text-base font-bold tracking-[-0.012rem] leading-[1.24rem]">
+          SELL & GAIN up to ₦50 on every <br /> $ Crypto Trade
+        </div>
+      </div>
+    ),
+  },
+    {
+    id: 5,
+    content: (
+      <div className="relative flex gap-3 p-4 rounded-xl border-2 border-[rgba(255,255,255,0.18)] bg-[linear-gradient(93deg,#5B129F_11.27%,#9234EA_75.65%,#521D84_112.1%)]">
+        <div className="text-white text-base font-bold tracking-[-0.012rem] leading-[1.24rem] relative z-10">
+          Speed UP Your Crypto, Gift Card & Bill <br /> Payments
+        </div>
+        <img
+          src="./images/cash.svg"
+          alt="Cash Background"
+          className="absolute right-0 top-0 bg-no-repeat"
+        />
+      </div>
+    ),
+  },
+  {
+    id: 6,
     content: (
       <div className="relative flex gap-3 p-4 rounded-xl border-2 border-white/18 bg-[linear-gradient(67deg,#3F9906_-90.03%,#C3BC02_-7.9%,#4B9C06_52.41%,#FC0_153.78%)]">
         <img
@@ -78,7 +139,6 @@ export default function SignUp() {
       console.log("Form submitted:", values);
       // route user to dashboard
       window.location.href = "/verify-email?email=" + values.email;
-      alert("Account created successfully!");
     },
   });
 
