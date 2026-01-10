@@ -1,15 +1,51 @@
 @import "tailwindcss";
 
+/* Custom animations - Add these AFTER the import */
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-text: #1a1a1a;
+  --primary-blue: #0044ee;
+  --base-surface: #fcfcfc;
+  --base-border: #e1e1e2;
+  --primary-alert: #e92f15;
+  --primary-green: #1dc660;
+  --primary-yellow: #e7b008;
+  --box-shadow-custom: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary-blue: var(--primary-blue);
+  --color-primary-text: var(--primary-text);
+  --color-primary-alert: var(--primary-alert);
+  --color-primary-green: var(--primary-green);
+  --color-primary-yellow: var(--primary-yellow);
+  --color-base-surface: var(--base-surface);
+  --color-base-border: var(--base-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --shadow-custom: var(--box-shadow-custom);
+
+  /* Add custom animations */
+  --animate-ripple-1: ripple 2s ease-out infinite;
+  --animate-ripple-2: ripple 2s ease-out 0.3s infinite;
+  --animate-ripple-3: ripple 2s ease-out 0.6s infinite;
+  --animate-ripple-4: ripple 2s ease-out 0.9s infinite;
+  --animate-ripple-5: ripple 2s ease-out 1.2s infinite;
+  --animate-pulse-slow: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +57,51 @@
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--primary-text);
+  font-family: var(--font-geist), sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* For Webkit-based browsers (Chrome, Safari and Opera) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Remove autofill background + text color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: inherit !important; /* your text color */
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+@media (max-width: 768px) {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: inherit !important; /* your text color */
+    transition: background-color 5000s ease-in-out 0s !important;
+  }
 }
