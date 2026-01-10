@@ -6,7 +6,7 @@ import { changeEmailSchema, verificationSchema } from "@/app/utils/validations";
 import { useFormik } from "formik";
 import { Mail, RefreshCw, ShieldCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 function VerifyOTP({
   email,
@@ -164,7 +164,7 @@ function ChangeEmail({ onSuccess }: { onSuccess: (email: string) => void }) {
   );
 }
 
-export default function VerifyEmail() {
+export function VerifyEmailContent() {
   const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
 
@@ -222,7 +222,7 @@ export default function VerifyEmail() {
             )}
 
             {isChangingEmail ? (
-                <ChangeEmail
+              <ChangeEmail
                 onSuccess={(newEmail) => {
                   const encodedEmail = encodeURIComponent(newEmail);
                   router.replace(`?email=${encodedEmail}`);
@@ -249,5 +249,19 @@ export default function VerifyEmail() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VerifyEmail() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-full lg:max-w-125 flex items-center justify-center">
+          <div className="text-primary-text">Loading...</div>
+        </div>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
