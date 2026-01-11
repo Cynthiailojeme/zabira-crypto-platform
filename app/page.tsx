@@ -71,6 +71,17 @@ export default function DashboardPage() {
     },
   ]);
 
+  const markStepCompleted = (stepId: number, stepName: string) => {
+    setSteps((prevSteps) =>
+      prevSteps.map((step) =>
+        step.id === stepId ? { ...step, completed: true } : step
+      )
+    );
+    setCompletedSteps(stepId);
+    setShowCurrentModal("");
+    setSucessModal(stepName);
+  };
+
   return (
     <DashboardLayout>
       <main className="w-full flex flex-col gap-6">
@@ -102,22 +113,14 @@ export default function DashboardPage() {
         <VerifyPhoneNumberModal
           open={showCurrentModal === "verify-phone-no"}
           setOpen={setShowCurrentModal}
-          handleCompletion={() => {
-            setCompletedSteps(2);
-            setShowCurrentModal("");
-            setSucessModal("phone-added");
-          }}
+          handleCompletion={() => markStepCompleted(2, "phone-added")}
         />
 
         {/* Modals */}
         <AddPersonalInfoModal
           open={showCurrentModal === "add-personal-info"}
           setOpen={setShowCurrentModal}
-          handleCompletion={() => {
-            setCompletedSteps(3);
-            setShowCurrentModal("");
-            setSucessModal("info-added");
-          }}
+          handleCompletion={() => markStepCompleted(3, "info-added")}
         />
 
         <SuccessModal
@@ -133,7 +136,18 @@ export default function DashboardPage() {
           }
           open={successModal !== ""}
           onClose={() => setSucessModal("")}
-          handleDoneAction={() => setSucessModal("")}
+          handleDoneAction={() => {
+            setSucessModal("");
+            const modalSequence: Record<number, string> = {
+              2: "add-personal-info",
+              3: "upgrade-kyc",
+              4: "enable-2fa",
+              5: "make-transaction",
+            };
+            setShowCurrentModal(
+              modalSequence[completedSteps] || "verify-phone-no"
+            );
+          }}
         />
       </main>
     </DashboardLayout>
