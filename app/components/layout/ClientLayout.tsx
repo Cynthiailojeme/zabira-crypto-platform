@@ -23,19 +23,21 @@ export default function ClientLayout({
 
   return (
     <>
-      <div
-        className={`min-h-screen transition-opacity duration-700 ${
-          showSplash === true ? "opacity-0" : "opacity-100"
-        }`}
-        style={{
-          willChange: "opacity",
-          transition: "opacity 0.7s ease-in-out",
-        }}
-      >
-        {children}
-      </div>
-
-      {showSplash === true && <Splash onComplete={handleSplashComplete} />}
+      {showSplash === true ? (
+        <Splash onComplete={handleSplashComplete} />
+      ) : (
+        <div
+          className={`min-h-screen transition-opacity duration-700 ${
+            showSplash === false ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            willChange: "opacity",
+            transition: "opacity 0.7s ease-in-out",
+          }}
+        >
+          {children}
+        </div>
+      )}
     </>
   );
 }
