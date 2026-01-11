@@ -19,6 +19,7 @@ interface ProfileCompletionProps {
     title: string;
     description: string;
     completed: boolean;
+    action: () => void;
   }[];
   setSteps?: () => void;
   open: boolean;
@@ -31,6 +32,15 @@ export function ProfileCompletionModal({
   setOpen,
 }: ProfileCompletionProps) {
   const completedCount = steps.filter((s) => s.completed).length;
+
+  const icons = [
+    "./images/mail.svg",
+    "./images/phone.svg",
+    "./images/personal-info.svg",
+    "./images/upgrade-kyc.svg",
+    "./images/enable-2fa.svg",
+    "./images/make-transaction.svg",
+  ];
 
   return (
     <Modal open={open} onOpenChange={setOpen}>
@@ -47,20 +57,20 @@ export function ProfileCompletionModal({
       </ModalHeader>
 
       <ModalBody>
-        <div className="space-y-2">
+        <div className="space-y-4">
           {steps.map((step, index) => (
             <ListItem
               key={step.id}
               active={step.completed}
               onClick={() => {
                 if (!step.completed) {
-                  console.log(`Navigate to step ${step.id}`);
+                  step.action();
                 }
               }}
               icon={
                 <IconContainer completed={step.completed}>
                   <div className="text-2xl">
-                    {["📧", "📱", "👤", "🆔", "🔒", "💸"][index]}
+                    <img src={icons[index]} alt={`${step.title} icon`} />
                   </div>
                 </IconContainer>
               }

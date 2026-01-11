@@ -75,6 +75,36 @@ button {
   scrollbar-width: none; /* Firefox */
 }
 
+input:focus, input:focus-within {
+  outline: none !important;
+}
+
+/* Chrome, Edge, Safari */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* Firefox */
+input[type="date"] {
+  appearance: none;
+}
+
+.PhoneInputCountryIcon--border {
+  background-color: transparent;
+  box-shadow: none !important;
+}
+
+.PhoneInputCountryIcon {
+  box-shadow: none;
+  border-radius: 1.5rem;
+  border: none;
+}
+
 /* Remove autofill background + text color */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

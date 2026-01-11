@@ -11,48 +11,62 @@ import { RecentTransactionsTable } from "./components/dashboard/RecentTransactio
 import { transactions } from "./utils/data";
 import { PromoSlides } from "./components/dashboard/PromoSlides";
 import { DoMore } from "./components/dashboard/DoMore";
+import { VerifyPhoneNumberModal } from "./components/dashboard/modals/VerifyPhoneNumberModal";
+import { AddPersonalInfoModal } from "./components/dashboard/modals/AddPersonalInfoModal";
 
 export default function DashboardPage() {
-  const [completedSteps, setCompletedSteps] = useState(4);
+  const [completedSteps, setCompletedSteps] = useState(1);
 
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [showCurrentModal, setShowCurrentModal] = useState("");
   const [successModal, setSucessModal] = useState("");
+
+  const handleNextStep = (val: string) => {
+    setShowProfileSetup(false);
+    setShowCurrentModal(val);
+  };
 
   const [steps, setSteps] = useState([
     {
       id: 1,
       title: "Verify your email",
       description: "Takes about 2 minutes",
+      action: () => {},
       completed: true,
     },
     {
       id: 2,
       title: "Verify phone number",
       description: "Takes about 2 minutes",
+      action: () => handleNextStep("verify-phone-no"),
       completed: false,
     },
     {
       id: 3,
       title: "Update personal information",
       description: "Takes about 2 minutes",
+      action: () => handleNextStep("add-personal-info"),
       completed: false,
     },
     {
       id: 4,
       title: "Upgrade KYC",
       description: "Takes about 2 minutes",
+      action: () => {},
       completed: false,
     },
     {
       id: 5,
       title: "Enable 2FA",
       description: "Takes about 2 minutes",
+      action: () => {},
       completed: false,
     },
     {
       id: 6,
       title: "Make your first transaction",
       description: "Takes about 2 minutes",
+      action: () => {},
       completed: false,
     },
   ]);
@@ -84,6 +98,28 @@ export default function DashboardPage() {
           setOpen={setShowProfileSetup}
         />
 
+        {/* Modals */}
+        <VerifyPhoneNumberModal
+          open={showCurrentModal === "verify-phone-no"}
+          setOpen={setShowCurrentModal}
+          handleCompletion={() => {
+            setCompletedSteps(2);
+            setShowCurrentModal("");
+            setSucessModal("phone-added");
+          }}
+        />
+
+        {/* Modals */}
+        <AddPersonalInfoModal
+          open={showCurrentModal === "add-personal-info"}
+          setOpen={setShowCurrentModal}
+          handleCompletion={() => {
+            setCompletedSteps(3);
+            setShowCurrentModal("");
+            setSucessModal("info-added");
+          }}
+        />
+
         <SuccessModal
           title={
             successModal === "phone-added"
@@ -97,7 +133,7 @@ export default function DashboardPage() {
           }
           open={successModal !== ""}
           onClose={() => setSucessModal("")}
-          handleDoneAction={() => {}}
+          handleDoneAction={() => setSucessModal("")}
         />
       </main>
     </DashboardLayout>

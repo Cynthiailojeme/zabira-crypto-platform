@@ -31,3 +31,21 @@ export const verificationSchema = Yup.object({
     .length(6, "OTP should be 6 characters")
     .required("OTP is required"),
 });
+
+export const phoneVerificationSchema = Yup.object({
+  phonenumber: Yup.string().trim().required("Phone number is required"),
+});
+
+export const personalInfoSchema = Yup.object({
+  username: Yup.string()
+    .matches(/[a-zA-Z]/, "Must contain at least one letter")
+    .matches(/\d/, "Must contain at least one number")
+    .min(3, "Minimum of 3 characters")
+    .required("Username is required"),
+
+  firstname: Yup.string().min(2, "Too short").required("Firstname is required"),
+
+  lastname: Yup.string().min(2, "Too short").required("Lastname is required"),
+
+  dob: Yup.date().nullable().max(new Date(), "Date cannot be in the future"),
+});

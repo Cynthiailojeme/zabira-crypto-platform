@@ -18,7 +18,7 @@ type Currency = {
   flag: React.ReactNode;
 };
 
-const currencies: Currency[] = [
+export const currencies: Currency[] = [
   {
     code: "USD",
     label: "USD",
@@ -88,6 +88,7 @@ export const Overview = () => {
                 return (
                   <button
                     key={currency.code}
+                    type="button"
                     onClick={() => setActiveCurrency(currency.code)}
                     className={cn(
                       "flex items-center gap-2 rounded-lg px-3 text-sm font-medium transition-all",
