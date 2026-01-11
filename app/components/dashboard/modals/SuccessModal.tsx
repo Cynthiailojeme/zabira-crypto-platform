@@ -18,7 +18,7 @@ export function SuccessModal({
   handleDoneAction,
 }: SuccessModalProps) {
   return (
-    <Modal open={open}>
+    <Modal open={open} className="max-w-110">
       <ModalHeader onClose={onClose}>
         <div className="flex flex-col items-center justify-center">
           <div>

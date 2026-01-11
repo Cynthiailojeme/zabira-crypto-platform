@@ -7,7 +7,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen bg-[#F4F4F5] p-6 lg:p-4 relative flex gap-4">
+    <div className="h-screen bg-[#FFFFFF] lg:bg-[#F4F4F5] p-6 lg:p-4 relative flex gap-4">
       {/* Left Panel - Branded Section */}
       <CarouselSidebar />
 

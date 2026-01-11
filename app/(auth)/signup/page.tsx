@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  ShieldCheck,
-  UserPlus,
-} from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ShieldCheck, UserPlus } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Button } from "@/app/components/ui/button";
@@ -18,6 +11,27 @@ import {
   ValidationRequirements,
 } from "@/app/components/auth/PasswordStrength";
 import { signupSchema } from "@/app/utils/validations";
+
+const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <circle cx="6" cy="4" r="2" stroke="#819099" strokeWidth="1.5" />
+    <ellipse cx="6" cy="8" rx="3" ry="2" stroke="#819099" strokeWidth="1.5" />
+    <circle cx="18" cy="16" r="2" stroke="#819099" strokeWidth="1.5" />
+    <path
+      d="M22 12C22 6.47715 17.5228 2 12 2M12 22C6.47715 22 2 17.5228 2 12"
+      stroke="#819099"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <ellipse cx="18" cy="20" rx="3" ry="2" stroke="#819099" strokeWidth="1.5" />
+  </svg>
+);
 
 export const promoSlides = [
   {
@@ -51,7 +65,7 @@ export const promoSlides = [
       </div>
     ),
   },
-    {
+  {
     id: 3,
     content: (
       <div className="relative flex gap-3 p-4 rounded-xl border-2 border-[rgba(255,255,255,0.18)] bg-[linear-gradient(93deg,#5B129F_11.27%,#9234EA_75.65%,#521D84_112.1%)]">
@@ -82,7 +96,7 @@ export const promoSlides = [
       </div>
     ),
   },
-    {
+  {
     id: 5,
     content: (
       <div className="relative flex gap-3 p-4 rounded-xl border-2 border-[rgba(255,255,255,0.18)] bg-[linear-gradient(93deg,#5B129F_11.27%,#9234EA_75.65%,#521D84_112.1%)]">
@@ -132,12 +146,11 @@ export default function SignUp() {
       email: "",
       password: "",
       referralCode: "",
-      agreeToTerms: true,
+      agreeToTerms: false,
     },
     validationSchema: signupSchema,
     onSubmit: (values) => {
-      console.log("Form submitted:", values);
-      // route user to dashboard
+      // route user to verify email page
       window.location.href = "/verify-email?email=" + values.email;
     },
   });
@@ -210,27 +223,42 @@ export default function SignUp() {
             label="Referral Code (Optional)"
             type="text"
             placeholder="Enter referral code"
-            icon={UserPlus}
+            icon={ReferallIcon}
             {...formik.getFieldProps("referralCode")}
           />
 
           {/* Terms Checkbox */}
-          <div className="flex items-start gap-2 mt-1">
-            <Checkbox id="terms" {...formik.getFieldProps("agreeToTerms")} />
-            <label
-              htmlFor="terms"
-              className="text-sm text-primary-text/70 leading-[1.225rem] tracking-[-0.00875rem] cursor-pointer"
-            >
-              By clicking 'Sign Up', I agree to Zabira's{" "}
-              <a href="#" className="text-primary-blue hover:underline">
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a href="#" className="text-primary-blue hover:underline">
-                Privacy Policy
-              </a>
-              .
-            </label>
+          <div>
+            <div className="flex items-start gap-2 mt-1">
+              <Checkbox
+                id="terms"
+                checked={formik.values.agreeToTerms}
+                onCheckedChange={(checked) =>
+                  formik.setFieldValue("agreeToTerms", checked)
+                }
+                onBlur={formik.handleBlur}
+                name="agreeToTerms"
+              />
+              <label
+                htmlFor="terms"
+                className="text-sm font-medium text-primary-text/70 leading-[1.225rem] tracking-[-0.00875rem] cursor-pointer"
+              >
+                By clicking 'Sign Up', I agree to Zabira's{" "}
+                <a href="#" className="text-primary-blue hover:underline">
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="#" className="text-primary-blue hover:underline">
+                  Privacy Policy
+                </a>
+                .
+              </label>
+            </div>
+            {formik.touched.agreeToTerms && formik.errors.agreeToTerms && (
+              <p className="mt-1.5 text-sm text-primary-alert">
+                {formik.errors.agreeToTerms}
+              </p>
+            )}
           </div>
         </div>
 
@@ -239,10 +267,11 @@ export default function SignUp() {
           size="lg"
           variant="outline"
           type="submit"
-          className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white disabled:bg-[#F4F4F5] disabled:text-primary-text/70"
+          disabled={!formik.isValid || !formik.dirty}
+          className="min-h-11 w-full gap-2 bg-primary-text text-white rounded-md hover:text-white disabled:bg-[#F4F4F5] disabled:border-none disabled:text-primary-text/18"
         >
           <ShieldCheck className="w-6 h-6" />
-          <span className="flex">Sign Up</span>
+          <span className="flex font-semibold text-base">Sign Up</span>
         </Button>
 
         {/* Divider */}

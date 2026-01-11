@@ -40,7 +40,7 @@ export const DoMore = () => {
               <p className="text-bas elg:text-lg font-medium text-white/70">
                 Get access to APIs and assets for your merchant profile
               </p>
-              <button className="flex h-9 min-h-9 px-3 py-0 justify-center items-center gap-1 rounded-md border border-base-border text-sm text-primary-text bg-[#FCFCFC]">
+              <button className="flex h-9 min-h-9 px-3 py-0 justify-center items-center gap-1 rounded-md border border-base-border text-sm font-semibold text-primary-text bg-[#FCFCFC]">
                 Apply Now
                 <ArrowRight className="text-[#52525B] h-4 w-4" />
               </button>

@@ -1,11 +1,10 @@
 import * as React from "react";
 import { cn } from "./utils";
-import type { LucideIcon } from "lucide-react";
 
 interface InputProps extends React.ComponentProps<"input"> {
   label?: string;
-  icon?: LucideIcon;
-  rightIcon?: LucideIcon;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  rightIcon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   onRightIconClick?: () => void;
   error?: string;
   helperText?: string;

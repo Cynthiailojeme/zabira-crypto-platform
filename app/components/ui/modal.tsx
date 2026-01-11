@@ -71,7 +71,7 @@ function ModalHeader({
     <div className={cn("relative px-6 pt-6 pb-4", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">{children}</div>
-        {rightElement && <div className="shrink-0">{rightElement}</div>}
+        {rightElement && <div className="ml-9 shrink-0">{rightElement}</div>}
       </div>
 
       {showClose && (
@@ -112,7 +112,12 @@ interface ModalTitleProps {
 
 function ModalTitle({ children, className }: ModalTitleProps) {
   return (
-    <h2 className={cn("text-xl font-bold text-primary-text mb-1 tracking-[-0.015rem]", className)}>
+    <h2
+      className={cn(
+        "text-xl font-bold text-primary-text mb-1 tracking-[-0.015rem]",
+        className
+      )}
+    >
       {children}
     </h2>
   );
@@ -124,7 +129,9 @@ interface ModalDescriptionProps {
 }
 
 function ModalDescription({ children, className }: ModalDescriptionProps) {
-  return <p className={cn("text-sm text-primary-text/70", className)}>{children}</p>;
+  return (
+    <div className={cn("text-sm text-primary-text/70", className)}>{children}</div>
+  );
 }
 
 // ============================================================================
@@ -142,7 +149,7 @@ function ModalBody({ children, className, scrollable = true }: ModalBodyProps) {
     <div
       className={cn(
         "px-6 pb-6",
-        scrollable && "max-h-[60vh] overflow-y-auto",
+        scrollable && "max-h-[80vh] overflow-y-auto",
         className
       )}
     >
@@ -188,53 +195,72 @@ interface ProgressIndicatorProps {
 function ProgressIndicator({
   current,
   total,
-  size = "md",
+  size = "sm",
   color = "#3B82F6",
-  className,
+  className = "",
 }: ProgressIndicatorProps) {
-  const sizes = {
-    sm: { width: 36, radius: 14, stroke: 3 },
-    md: { width: 48, radius: 20, stroke: 4 },
-    lg: { width: 64, radius: 28, stroke: 5 },
+  // Calculate size dimensions
+  const sizeMap = {
+    sm: 64,
+    md: 96,
+    lg: 128,
   };
 
-  const { width, radius, stroke } = sizes[size];
+  const width = sizeMap[size];
+  const strokeWidth = 7.4132; // This creates the visible ring thickness
+  const radius = (width - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
+
+  // Calculate progress percentage
   const progress = (current / total) * circumference;
 
+  // Calculate the dash offset to start from top and go clockwise
+  const dashOffset = circumference - progress;
+
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <span className="text-sm font-medium text-gray-900">
-        {current}/{total}
-      </span>
-      <div className={`relative`} style={{ width, height: width }}>
-        <svg
-          className="transform -rotate-90"
-          width={width}
-          height={width}
-          viewBox={`0 0 ${width} ${width}`}
-        >
-          <circle
-            cx={width / 2}
-            cy={width / 2}
-            r={radius}
-            fill="none"
-            stroke="#E5E7EB"
-            strokeWidth={stroke}
-          />
-          <circle
-            cx={width / 2}
-            cy={width / 2}
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth={stroke}
-            strokeDasharray={`${progress} ${circumference}`}
-            strokeLinecap="round"
-            className="transition-all duration-500 ease-out"
-          />
-        </svg>
+    <div
+      className={`relative ${className}`}
+      style={{ width: `${width}px`, height: `${width}px` }}
+    >
+      {/* Centered text */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xl font-bold leading-[1.2rem] text-primary-text">
+          {current}/{total}
+        </span>
       </div>
+
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={width}
+        height={width}
+        viewBox={`0 0 ${width} ${width}`}
+        fill="none"
+        style={{ transform: "rotate(-90deg)" }} // Start from top
+      >
+        {/* Background circle (gray) */}
+        <circle
+          cx={width / 2}
+          cy={width / 2}
+          r={radius}
+          fill="none"
+          stroke="#F4F4F5"
+          strokeWidth={strokeWidth}
+        />
+
+        {/* Progress circle (blue) */}
+        <circle
+          cx={width / 2}
+          cy={width / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          strokeLinecap="round"
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
     </div>
   );
 }
@@ -269,12 +295,12 @@ function ListItem({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full flex items-center gap-4 p-4 rounded-xl transition-all",
+        "w-full flex items-center justify-between gap-4 p-4 rounded-xl transition-all",
         "text-left group relative overflow-hidden",
         isClickable && "cursor-pointer hover:shadow-sm",
         active
-          ? "bg-blue-50"
-          : "bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50",
+          ? "bg-[#EBF5FF] border border-[#A3D4FF]"
+          : "bg-[#FCFCFC] border border-[#E1E1E2] hover:border-gray-300 hover:bg-gray-50",
         disabled && "cursor-default opacity-50",
         className
       )}
@@ -291,17 +317,35 @@ function ListItem({
 
       {isClickable && !active && (
         <svg
-          className="shrink-0 w-5 h-5 text-gray-400 transition-transform group-hover:translate-x-0.5"
-          viewBox="0 0 20 20"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M7.5 15L12.5 10L7.5 5"
-            stroke="currentColor"
-            strokeWidth="2"
+            d="M5.00333 2L11 8.018L5 14"
+            stroke="#A1A1AA"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </svg>
+      )}
+
+      {active && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22ZM17.0001 10.4142C17.3906 10.0237 17.3906 9.39051 17.0001 8.99999C16.6096 8.60946 15.9764 8.60946 15.5859 8.99999L10.3495 14.2364L8.05224 11.5563C7.69282 11.137 7.06152 11.0884 6.6422 11.4478C6.22287 11.8073 6.17431 12.4386 6.53373 12.8579L9.53373 16.3579C9.715 16.5694 9.97627 16.6957 10.2546 16.7064C10.5329 16.717 10.8031 16.6112 11.0001 16.4142L17.0001 10.4142Z"
+            fill="#299BFF"
           />
         </svg>
       )}
@@ -316,7 +360,12 @@ interface ListItemTitleProps {
 
 function ListItemTitle({ children, className }: ListItemTitleProps) {
   return (
-    <h3 className={cn("text-sm font-semibold text-gray-900 mb-0.5", className)}>
+    <h3
+      className={cn(
+        "text-base font-semibold text-primary-text tracking-[-0.012rem]",
+        className
+      )}
+    >
       {children}
     </h3>
   );
@@ -331,7 +380,16 @@ function ListItemDescription({
   children,
   className,
 }: ListItemDescriptionProps) {
-  return <p className={cn("text-xs text-gray-500", className)}>{children}</p>;
+  return (
+    <p
+      className={cn(
+        "text-sm text-primary-text/70 tracking-[-0.00875rem]",
+        className
+      )}
+    >
+      {children}
+    </p>
+  );
 }
 
 // ============================================================================
@@ -349,8 +407,6 @@ interface IconContainerProps {
 function IconContainer({
   children,
   variant = "gradient",
-  color = "blue",
-  completed,
   className,
 }: IconContainerProps) {
   const variants = {
@@ -364,31 +420,10 @@ function IconContainer({
       className={cn(
         "relative w-12 h-12 rounded-xl flex items-center justify-center",
         variants[variant],
-        completed && "bg-white",
-        !completed && variant === "gradient" && "from-gray-50 to-gray-100",
         className
       )}
     >
       {children}
-      {completed && (
-        <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M10 3L4.5 8.5L2 6"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      )}
     </div>
   );
 }
