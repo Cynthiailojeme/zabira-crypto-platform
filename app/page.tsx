@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Overview } from "./components/dashboard/Overview";
 import { Payments } from "./components/dashboard/Payments";
 import ProfileSetup from "./components/dashboard/ProfileSetup";
 import DashboardLayout from "./components/layout/DashboardLayout";
-import { promoSlides } from "./(auth)/signup/page";
 import { ProfileCompletionModal } from "./components/dashboard/modals/ProfileCompletionModal";
 import { SuccessModal } from "./components/dashboard/modals/SuccessModal";
 import { RecentTransactionsTable } from "./components/dashboard/RecentTransactionTable";
 import { transactions } from "./utils/data";
+import { PromoSlides } from "./components/dashboard/PromoSlides";
+import { DoMore } from "./components/dashboard/DoMore";
 
 export default function DashboardPage() {
   const [completedSteps, setCompletedSteps] = useState(4);
@@ -56,34 +57,11 @@ export default function DashboardPage() {
     },
   ]);
 
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [slidesPerView, setSlidesPerView] = useState(1);
-
-  useEffect(() => {
-    const updateSlidesPerView = () => {
-      setSlidesPerView(window.innerWidth >= 768 ? 2 : 1);
-    };
-
-    updateSlidesPerView();
-    window.addEventListener("resize", updateSlidesPerView);
-    return () => window.removeEventListener("resize", updateSlidesPerView);
-  }, []);
-
-  // Optional: Auto-play functionality
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) =>
-        prev >= Math.ceil(promoSlides.length / slidesPerView) - 1 ? 0 : prev + 1
-      );
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [promoSlides.length, slidesPerView]);
-
   return (
     <DashboardLayout>
       <main className="w-full flex flex-col gap-6">
-        {/* Overview */}
         <Overview />
+
         <ProfileSetup
           completedSteps={completedSteps}
           completeSetUp={() => {
@@ -93,48 +71,13 @@ export default function DashboardPage() {
 
         <Payments />
 
-        <div className="w-full flex flex-col">
-          {/* Promo Slideshow */}
-          <div className="relative overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{
-                transform: `translateX(-${
-                  currentSlide * (100 / slidesPerView)
-                }%)`,
-              }}
-            >
-              {promoSlides.map((slide, index) => (
-                <div
-                  key={slide.id}
-                  className="shrink-0 w-full md:w-1/2 px-2"
-                >
-                  {slide.content}
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Dots Navigation */}
-          <div className="relative w-fit flex gap-1 mt-4 mx-auto">
-            {Array.from({
-              length: Math.ceil(promoSlides.length / slidesPerView),
-            }).map((_, index) => (
-              <button
-                key={`dot-${index}`}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-4.25 h-1 rounded-xs transition-all duration-300 ${
-                  index === currentSlide
-                    ? "bg-[#A1A1AA]"
-                    : "bg-[#E1E1E2] hover:bg-white/50"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
+        <PromoSlides />
 
         <RecentTransactionsTable data={transactions} />
 
+        <DoMore />
+
+        {/* Modals */}
         <ProfileCompletionModal
           steps={steps}
           open={showProfileSetup}

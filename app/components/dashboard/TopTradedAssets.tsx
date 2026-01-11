@@ -56,7 +56,7 @@ export const TopTradedAssets = () => {
       <div className="flex justify-between items-center mb-6">
         <h4 className="flex items-center gap-1.5 text-base text-primary-text font-bold tracking-[-0.012rem]">
           <img src="./icons/strike.svg" alt="Chart Icon" />
-          Top traded assets this week
+          Top traded <span className="hidden lg:flex">assets</span> this week
         </h4>
 
         <button className="text-white text-sm flex items-center justify-between py-0.5 px-2 rounded-[3.125rem] font-semibold border border-white/12 bg-primary-text transition hover:opacity-90">
