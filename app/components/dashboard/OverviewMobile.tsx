@@ -23,6 +23,11 @@ export const OverviewMobile = ({
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const handleCurrencySelect = (currencyCode: string) => {
+    setActiveCurrency(currencyCode);
+    setIsDropdownOpen(false);
+  };
+
   return (
     <div className="lg:hidden w-full flex flex-col">
       <div className="relative bg-primary-blue p-5 rounded-xl">
@@ -67,6 +72,7 @@ export const OverviewMobile = ({
                 <div
                   className="fixed inset-0 z-10"
                   onClick={() => setIsDropdownOpen(false)}
+                  onTouchEnd={() => setIsDropdownOpen(false)}
                 />
 
                 <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg overflow-hidden z-20">
@@ -74,9 +80,10 @@ export const OverviewMobile = ({
                     <button
                       key={currency.code}
                       type="button"
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        setActiveCurrency(currency.code);
+                      onClick={() => handleCurrencySelect(currency.code)}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        handleCurrencySelect(currency.code);
                       }}
                       className={`w-full flex items-center gap-2 px-3 py-2.5 hover:bg-gray-100 transition-colors ${
                         activeCurrency === currency.code
