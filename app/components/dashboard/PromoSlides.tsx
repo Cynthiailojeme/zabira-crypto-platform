@@ -35,7 +35,7 @@ export const PromoSlides = () => {
             transform: `translateX(-${currentSlide * (100 / slidesPerView)}%)`,
           }}
         >
-          {promoSlides.map((slide, index) => (
+          {promoSlides.map((slide) => (
             <div key={slide.id} className="shrink-0 w-full md:w-1/2 px-2">
               {slide.content}
             </div>
