@@ -1,10 +1,11 @@
 "use client";
+import { OTPToast } from "@/app/components/dashboard/OTPToast";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { OtpInput } from "@/app/components/ui/input-otp";
 import { changeEmailSchema, verificationSchema } from "@/app/utils/validations";
 import { useFormik } from "formik";
-import { Mail, RefreshCw, ShieldCheck } from "lucide-react";
+import { AlertCircle, Mail, RefreshCw, ShieldCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
@@ -18,15 +19,63 @@ function VerifyOTP({
   setEmailVerified: (verified: boolean) => void;
 }) {
   const [timeLeft, setTimeLeft] = useState(300);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+
+  // OTP Toast state
+  const [showOTPToast, setShowOTPToast] = useState(false);
+  const [generatedOTP, setGeneratedOTP] = useState("");
 
   const formik = useFormik({
     initialValues: {
       otp: "",
     },
     validationSchema: verificationSchema,
-    onSubmit: (values) => {
-      console.log("Verifying OTP:", { email, ...values });
-      setEmailVerified(true);
+    onSubmit: async (values) => {
+      setIsVerifying(true);
+      setApiError(null);
+
+      try {
+        const response = await fetch("/api/auth/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            otp: values.otp,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setApiError(data.error || "Verification failed");
+          return;
+        }
+
+        // Success! Store verified user data
+        localStorage.setItem(
+          "currentUser",
+          JSON.stringify({
+            email: data.user.email,
+            id: data.user.id,
+            verified: true,
+          })
+        );
+
+        // Clear pending verification
+        localStorage.removeItem("pendingVerification");
+
+        setEmailVerified(true);
+      } catch (error) {
+        console.error("Verification error:", error);
+        setApiError("Network error. Please check your connection.");
+      } finally {
+        setIsVerifying(false);
+      }
     },
   });
 
@@ -53,114 +102,276 @@ function VerifyOTP({
         formik.setFieldValue("otp", text);
       }
     } catch (err) {
-      // silently fail
       console.error("Failed to read clipboard contents: ", err);
     }
   };
 
+  const handleResendOTP = async () => {
+    setIsResending(true);
+    setResendMessage(null);
+    setApiError(null);
+
+    try {
+      const response = await fetch(
+        `/api/auth/verify?email=${encodeURIComponent(email)}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResendMessage("New OTP sent!");
+        setTimeLeft(300); // Reset timer
+
+        // Show OTP in toast notification
+        if (data.debug?.otp) {
+          console.log("New OTP:", data.debug.otp);
+          setGeneratedOTP(data.debug.otp);
+          setShowOTPToast(true);
+        }
+      } else {
+        setApiError(data.error || "Failed to resend OTP");
+      }
+    } catch (error) {
+      setApiError("Network error. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-8">
-      <div className="space-y-3">
-        <div className="flex justify-between">
-          <span className="text-sm font-semibold text-primary-text">
-            Enter Code
-          </span>
+    <>
+      <form onSubmit={formik.handleSubmit} className="space-y-8">
+        {/* API Error Display */}
+        {apiError && (
+          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+            <AlertCircle className="w-5 h-5 text-primary-alert" />
+            <p className="text-sm font-medium text-primary-alert">{apiError}</p>
+          </div>
+        )}
+
+        {/* Success Message Display */}
+        {resendMessage && (
+          <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+            <p className="text-sm text-green-600">{resendMessage}</p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-sm font-semibold text-primary-text">
+              Enter Code
+            </span>
+            <button
+              type="button"
+              onClick={handlePasteCode}
+              className="bg-[#F4F4F5] px-1.5 py-1 text-xs text-primary-text font-medium rounded-sm"
+            >
+              Paste Code
+            </button>
+          </div>
+
+          <OtpInput
+            label=""
+            value={formik.values.otp}
+            onChange={(value) => formik.setFieldValue("otp", value)}
+            error={
+              formik.touched.otp && formik.errors.otp
+                ? formik.errors.otp
+                : undefined
+            }
+          />
+        </div>
+
+        <div className="flex justify-between items-center">
+          <Button
+            type="button"
+            size="md"
+            variant="outline"
+            className="gap-2 text-primary-text rounded-md border-base-border bg-base-surface"
+            onClick={onChangeEmail}
+            disabled={isVerifying}
+          >
+            <RefreshCw className="w-5 h-5" />
+            Change Email
+          </Button>
+
           <button
             type="button"
-            onClick={handlePasteCode}
-            className="bg-[#F4F4F5] px-1.5 py-1 text-xs text-primary-text font-medium rounded-sm"
+            disabled={timeLeft > 0 || isResending}
+            className="bg-transparent px-1.5 py-1 text-sm text-primary-text/70 font-medium rounded-sm disabled:opacity-50"
+            onClick={handleResendOTP}
           >
-            Paste Code
+            {isResending ? (
+              "Resending..."
+            ) : timeLeft > 0 ? (
+              <>
+                Resend Code in{" "}
+                <span className="text-primary-blue">
+                  {formatTime(timeLeft)}
+                </span>
+              </>
+            ) : (
+              "Resend Code"
+            )}
           </button>
         </div>
 
-        <OtpInput
-          label=""
-          value={formik.values.otp}
-          onChange={(value) => formik.setFieldValue("otp", value)}
-          error={
-            formik.touched.otp && formik.errors.otp
-              ? formik.errors.otp
-              : undefined
-          }
-        />
-      </div>
-
-      <div className="flex justify-between items-center">
         <Button
-          type="button"
-          size="md"
+          size="lg"
+          type="submit"
           variant="outline"
-          className="gap-2 text-primary-text rounded-md border-base-border bg-base-surface"
-          onClick={onChangeEmail}
+          disabled={!formik.isValid || !formik.dirty || isVerifying}
+          className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white disabled:bg-[#F4F4F5] disabled:border-none disabled:text-primary-text/18"
         >
-          <RefreshCw className="w-5 h-5" />
-          Change Email
-        </Button>
-
-        <button
-          type="button"
-          disabled={timeLeft > 0}
-          className="bg-transparent px-1.5 py-1 text-sm text-primary-text/70 font-medium rounded-sm"
-          onClick={() => setTimeLeft(300)}
-        >
-          {timeLeft > 0 ? (
+          {isVerifying ? (
             <>
-              Resend Code in{" "}
-              <span className="text-primary-blue">{formatTime(timeLeft)}</span>
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>Verifying...</span>
             </>
           ) : (
-            "Resend Code"
+            <>
+              <ShieldCheck className="w-6 h-6" />
+              Verify
+            </>
           )}
-        </button>
-      </div>
+        </Button>
+      </form>
 
-      <Button
-        size="lg"
-        type="submit"
-        variant="outline"
-        className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white"
-      >
-        <ShieldCheck className="w-6 h-6" />
-        Verify
-      </Button>
-    </form>
+      {/* OTP Toast Notification for Resend */}
+      <OTPToast
+        otp={generatedOTP}
+        email={email}
+        show={showOTPToast}
+        onClose={() => setShowOTPToast(false)}
+      />
+    </>
   );
 }
 
-function ChangeEmail({ onSuccess }: { onSuccess: (email: string) => void }) {
+function ChangeEmail({
+  currentEmail,
+  onSuccess,
+}: {
+  currentEmail: string;
+  onSuccess: (email: string) => void;
+}) {
+  const [isChanging, setIsChanging] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // OTP Toast state
+  const [showOTPToast, setShowOTPToast] = useState(false);
+  const [generatedOTP, setGeneratedOTP] = useState("");
+  const [newEmailForToast, setNewEmailForToast] = useState("");
+
   const formik = useFormik({
     initialValues: { email: "" },
     validationSchema: changeEmailSchema,
-    onSubmit: (values) => {
-      onSuccess(values.email);
+    onSubmit: async (values) => {
+      setIsChanging(true);
+      setApiError(null);
+
+      try {
+        const response = await fetch("/api/auth/verify", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            oldEmail: currentEmail,
+            newEmail: values.email,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setApiError(data.error || "Failed to change email");
+          return;
+        }
+
+        // Show OTP in toast notification
+        if (data.debug?.otp) {
+          setGeneratedOTP(data.debug.otp);
+          setNewEmailForToast(values.email);
+          setShowOTPToast(true);
+
+          // Auto-update email after 5 seconds or when toast closes
+          setTimeout(() => {
+            if (showOTPToast) {
+              onSuccess(values.email);
+            }
+          }, 5000);
+        } else {
+          // If no debug OTP, just update email
+          onSuccess(values.email);
+        }
+      } catch (error) {
+        console.error("Change email error:", error);
+        setApiError("Network error. Please try again.");
+      } finally {
+        setIsChanging(false);
+      }
     },
   });
 
-  return (
-    <form onSubmit={formik.handleSubmit} className="space-y-6">
-      <Input
-        label="Email"
-        type="email"
-        placeholder="Type your email"
-        icon={Mail}
-        {...formik.getFieldProps("email")}
-        error={
-          formik.touched.email && formik.errors.email
-            ? formik.errors.email
-            : undefined
-        }
-      />
+  const handleToastClose = () => {
+    setShowOTPToast(false);
+    onSuccess(newEmailForToast);
+  };
 
-      <Button
-        size="lg"
-        variant="outline"
-        type="submit"
-        className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white"
-      >
-        Change Email
-      </Button>
-    </form>
+  return (
+    <>
+      <form onSubmit={formik.handleSubmit} className="space-y-6">
+        {apiError && (
+          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+            <AlertCircle className="w-5 h-5 text-primary-alert" />
+            <p className="text-sm font-medium text-primary-alert">{apiError}</p>
+          </div>
+        )}
+
+        <Input
+          label="Email"
+          type="email"
+          placeholder="Type your email"
+          icon={Mail}
+          {...formik.getFieldProps("email")}
+          error={
+            formik.touched.email && formik.errors.email
+              ? formik.errors.email
+              : undefined
+          }
+          disabled={isChanging}
+        />
+
+        <Button
+          size="lg"
+          variant="outline"
+          type="submit"
+          disabled={!formik.isValid || !formik.dirty || isChanging}
+          className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white disabled:bg-[#F4F4F5] disabled:border-none disabled:text-primary-text/18"
+        >
+          {isChanging ? (
+            <>
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>Changing Email...</span>
+            </>
+          ) : (
+            "Change Email"
+          )}
+        </Button>
+      </form>
+
+      {/* OTP Toast Notification */}
+      <OTPToast
+        otp={generatedOTP}
+        email={newEmailForToast}
+        show={showOTPToast}
+        onClose={handleToastClose}
+      />
+    </>
   );
 }
 
@@ -174,6 +385,17 @@ export function VerifyEmailContent() {
   const email = decodeURIComponent(rawEmail);
 
   const router = useRouter();
+
+  // Load OTP from localStorage if available (for development)
+  useEffect(() => {
+    const pendingData = localStorage.getItem("pendingVerification");
+    if (pendingData) {
+      const data = JSON.parse(pendingData);
+      if (data.debug?.otp) {
+        console.log("Your OTP:", data.debug.otp);
+      }
+    }
+  }, []);
 
   return (
     <div className="w-full max-w-full lg:max-w-125 flex flex-col items-center gap-6 mb-20">
@@ -223,10 +445,10 @@ export function VerifyEmailContent() {
 
             {isChangingEmail ? (
               <ChangeEmail
+                currentEmail={email}
                 onSuccess={(newEmail) => {
                   const encodedEmail = encodeURIComponent(newEmail);
                   router.replace(`?email=${encodedEmail}`);
-
                   setIsChangingEmail(false);
                 }}
               />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, Mail, Lock, ShieldCheck, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Button } from "@/app/components/ui/button";
@@ -11,6 +11,7 @@ import {
   ValidationRequirements,
 } from "@/app/components/auth/PasswordStrength";
 import { signupSchema } from "@/app/utils/validations";
+import { OTPToast } from "@/app/components/dashboard/OTPToast";
 
 const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
   <svg
@@ -20,16 +21,16 @@ const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
     viewBox="0 0 24 24"
     fill="none"
   >
-    <circle cx="6" cy="4" r="2" stroke="currentColor" strokeWidth="1.5" />
-    <ellipse cx="6" cy="8" rx="3" ry="2" stroke="currentColor" strokeWidth="1.5" />
-    <circle cx="18" cy="16" r="2" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="6" cy="4" r="2" stroke="#819099" strokeWidth="1.5" />
+    <ellipse cx="6" cy="8" rx="3" ry="2" stroke="#819099" strokeWidth="1.5" />
+    <circle cx="18" cy="16" r="2" stroke="#819099" strokeWidth="1.5" />
     <path
       d="M22 12C22 6.47715 17.5228 2 12 2M12 22C6.47715 22 2 17.5228 2 12"
-      stroke="currentColor"
+      stroke="#819099"
       strokeWidth="1.5"
       strokeLinecap="round"
     />
-    <ellipse cx="18" cy="20" rx="3" ry="2" stroke="currentColor" strokeWidth="1.5" />
+    <ellipse cx="18" cy="20" rx="3" ry="2" stroke="#819099" strokeWidth="1.5" />
   </svg>
 );
 
@@ -132,6 +133,13 @@ export const promoSlides = [
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // OTP Toast state
+  const [showOTPToast, setShowOTPToast] = useState(false);
+  const [generatedOTP, setGeneratedOTP] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -149,11 +157,71 @@ export default function SignUp() {
       agreeToTerms: false,
     },
     validationSchema: signupSchema,
-    onSubmit: (values) => {
-      // route user to verify email page
-      window.location.href = "/verify-email?email=" + values.email;
+    onSubmit: async (values) => {
+      setIsSubmitting(true);
+      setApiError(null);
+
+      try {
+        const response = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          // Handle error responses
+          setApiError(data.error || "An error occurred during signup");
+          return;
+        }
+
+        // Success! Store verification data in localStorage
+        localStorage.setItem(
+          "pendingVerification",
+          JSON.stringify({
+            email: values.email,
+            userId: data.user.id,
+            debug: data.debug, // Contains OTP in development
+          })
+        );
+
+        // Show OTP in toast notification
+        if (data.debug?.otp) {
+          console.log("Your OTP:", data.debug.otp);
+          setGeneratedOTP(data.debug.otp);
+          setUserEmail(values.email);
+          setShowOTPToast(true);
+
+          // Auto-redirect after 3 seconds (or user can close toast to redirect immediately)
+          setTimeout(() => {
+            window.location.href =
+              "/verify-email?email=" + encodeURIComponent(values.email);
+          }, 3000);
+        } else {
+          // If no debug OTP (production), redirect immediately
+          window.location.href =
+            "/verify-email?email=" + encodeURIComponent(values.email);
+        }
+      } catch (error) {
+        console.error("Signup error:", error);
+        setApiError(
+          "Network error. Please check your connection and try again."
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
     },
   });
+
+  const handleToastClose = () => {
+    setShowOTPToast(false);
+    // Redirect to verification page when toast is closed
+    window.location.href =
+      "/verify-email?email=" + encodeURIComponent(userEmail);
+  };
 
   return (
     <div className="w-full max-w-full lg:max-w-125 flex flex-col items-center gap-6 mb-20">
@@ -165,6 +233,13 @@ export default function SignUp() {
         <h2 className="text-2xl font-bold text-primary-text">
           Create an account in 2 minutes!
         </h2>
+
+        {/* API Error Display */}
+        {apiError && (
+          <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+            <p className="text-sm text-red-600">{apiError}</p>
+          </div>
+        )}
 
         {/* Promo Slideshow */}
         <div className="relative overflow-hidden">
@@ -193,6 +268,7 @@ export default function SignUp() {
                 ? formik.errors.email
                 : undefined
             }
+            disabled={isSubmitting}
           />
 
           <div>
@@ -209,6 +285,7 @@ export default function SignUp() {
                   : undefined
               }
               onRightIconClick={() => setShowPassword(!showPassword)}
+              disabled={isSubmitting}
             />
 
             {formik.touched.password ? (
@@ -225,6 +302,7 @@ export default function SignUp() {
             placeholder="Enter referral code"
             icon={ReferallIcon}
             {...formik.getFieldProps("referralCode")}
+            disabled={isSubmitting}
           />
 
           {/* Terms Checkbox */}
@@ -238,6 +316,7 @@ export default function SignUp() {
                 }
                 onBlur={formik.handleBlur}
                 name="agreeToTerms"
+                disabled={isSubmitting}
               />
               <label
                 htmlFor="terms"
@@ -267,11 +346,22 @@ export default function SignUp() {
           size="lg"
           variant="outline"
           type="submit"
-          disabled={!formik.isValid || !formik.dirty}
+          disabled={!formik.isValid || !formik.dirty || isSubmitting}
           className="min-h-11 w-full gap-2 bg-primary-text text-white rounded-md hover:text-white disabled:bg-[#F4F4F5] disabled:border-none disabled:text-primary-text/18"
         >
-          <ShieldCheck className="w-6 h-6" />
-          <span className="flex font-semibold text-base">Sign Up</span>
+          {isSubmitting ? (
+            <>
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="flex font-semibold text-base">
+                Creating Account...
+              </span>
+            </>
+          ) : (
+            <>
+              <ShieldCheck className="w-6 h-6" />
+              <span className="flex font-semibold text-base">Sign Up</span>
+            </>
+          )}
         </Button>
 
         {/* Divider */}
@@ -285,6 +375,7 @@ export default function SignUp() {
             size="lg"
             variant="outline"
             className="w-fit lg:w-full gap-2 text-primary-text rounded-md border-base-border bg-base-surface"
+            disabled={isSubmitting}
           >
             <img src="./images/google-logo.svg" alt="Google Logo" />
             <span className="hidden lg:flex">Google</span>
@@ -293,6 +384,7 @@ export default function SignUp() {
             size="lg"
             variant="outline"
             className="w-fit lg:w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white"
+            disabled={isSubmitting}
           >
             <img src="./images/apple-logo.svg" alt="Apple Logo" />
             <span className="hidden lg:flex">Apple</span>
@@ -313,6 +405,14 @@ export default function SignUp() {
         <img src="./images/shield-star-fill.svg" alt="Shield Star Logo" />
         <span>NDPR Compliant</span>
       </div>
+
+      {/* OTP Toast Notification */}
+      <OTPToast
+        otp={generatedOTP}
+        email={userEmail}
+        show={showOTPToast}
+        onClose={handleToastClose}
+      />
     </div>
   );
 }
