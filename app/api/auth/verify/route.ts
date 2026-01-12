@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
     users[userIndex].otpExpiry = newExpiry;
     await writeUsers(users);
 
-    // In production, send OTP via email here
+    // In a real app, OTP would be sent via email here
     console.log(`New OTP for ${email}: ${newOtp} (expires: ${newExpiry})`);
 
     return NextResponse.json(
@@ -249,8 +249,6 @@ export async function PUT(request: NextRequest) {
     users[userIndex].verified = false; // Reset verification status
 
     await writeUsers(users);
-
-    console.log(`Email changed to ${newEmail}. New OTP: ${newOtp}`);
 
     return NextResponse.json(
       {

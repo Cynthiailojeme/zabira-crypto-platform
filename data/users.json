@@ -28,5 +28,23 @@
     "otp": "777070",
     "otpExpiry": "2026-01-12T02:50:32.228Z",
     "createdAt": "2026-01-12T02:45:32.228Z"
+  },
+  {
+    "id": "cbaaa9b6-f787-4935-aefd-97ddcd3d3a4a",
+    "email": "cynthiaezinne1@gmail.com",
+    "password": "Cynthia@4",
+    "referralCode": "",
+    "verified": true,
+    "otp": "797088",
+    "otpExpiry": "2026-01-12T11:03:43.873Z",
+    "createdAt": "2026-01-12T10:19:24.771Z",
+    "phoneNumber": "+2349068350488",
+    "phoneOtp": "913170",
+    "phoneOtpExpiry": "2026-01-12T12:23:58.573Z",
+    "phoneVerified": true,
+    "username": "cynthiailojeme2",
+    "firstname": "Cynthia",
+    "lastname": "Ilojeme",
+    "dob": "2008-01-08"
   }
 ]

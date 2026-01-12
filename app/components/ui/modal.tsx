@@ -41,6 +41,7 @@ function Modal({ open, onOpenChange, children, className }: ModalProps) {
             className
           )}
         >
+          <AlertDialogPrimitive.Description></AlertDialogPrimitive.Description>
           {children}
         </AlertDialogPrimitive.Content>
       </AlertDialogPrimitive.Portal>
@@ -130,7 +131,9 @@ interface ModalDescriptionProps {
 
 function ModalDescription({ children, className }: ModalDescriptionProps) {
   return (
-    <div className={cn("text-sm text-primary-text/70", className)}>{children}</div>
+    <div className={cn("text-sm text-primary-text/70", className)}>
+      {children}
+    </div>
   );
 }
 

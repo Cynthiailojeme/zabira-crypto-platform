@@ -5,7 +5,13 @@ import { Input } from "@/app/components/ui/input";
 import { OtpInput } from "@/app/components/ui/input-otp";
 import { changeEmailSchema, verificationSchema } from "@/app/utils/validations";
 import { useFormik } from "formik";
-import { AlertCircle, Mail, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Mail,
+  RefreshCw,
+  ShieldCheck,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
@@ -127,7 +133,6 @@ function VerifyOTP({
 
         // Show OTP in toast notification
         if (data.debug?.otp) {
-          console.log("New OTP:", data.debug.otp);
           setGeneratedOTP(data.debug.otp);
           setShowOTPToast(true);
         }
@@ -154,8 +159,16 @@ function VerifyOTP({
 
         {/* Success Message Display */}
         {resendMessage && (
-          <div className="p-3 rounded-lg bg-green-50 border border-green-200">
-            <p className="text-sm text-green-600">{resendMessage}</p>
+          <div
+            className="p-3 flex items-center gap-2 rounded-lg bg-primary-green/50 border border-primary-green"
+            style={{
+              borderColor: "#1dc660",
+            }}
+          >
+            <CheckCircle className="w-5 h-5 text-primary-green" />
+            <p className="text-sm font-medium text-primary-green">
+              {resendMessage}
+            </p>
           </div>
         )}
 
@@ -201,7 +214,7 @@ function VerifyOTP({
           <button
             type="button"
             disabled={timeLeft > 0 || isResending}
-            className="bg-transparent px-1.5 py-1 text-sm text-primary-text/70 font-medium rounded-sm disabled:opacity-50"
+            className="bg-transparent px-1.5 py-1 text-sm text-primary-text/70 font-medium rounded-sm disabled:cursor-not-allowed"
             onClick={handleResendOTP}
           >
             {isResending ? (
@@ -243,7 +256,6 @@ function VerifyOTP({
       {/* OTP Toast Notification for Resend */}
       <OTPToast
         otp={generatedOTP}
-        email={email}
         show={showOTPToast}
         onClose={() => setShowOTPToast(false)}
       />
@@ -367,7 +379,6 @@ function ChangeEmail({
       {/* OTP Toast Notification */}
       <OTPToast
         otp={generatedOTP}
-        email={newEmailForToast}
         show={showOTPToast}
         onClose={handleToastClose}
       />

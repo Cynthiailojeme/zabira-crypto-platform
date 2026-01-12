@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 
 interface OTPToastProps {
   otp: string;
-  email: string;
   show: boolean;
   onClose: () => void;
 }
@@ -27,7 +26,7 @@ export function OTPToast({ otp, show, onClose }: OTPToastProps) {
       await navigator.clipboard.writeText(otp);
       setCopied(true);
       setTimeout(() => setCopied(false), 1000);
-      setIsVisible(false);
+      handleClose();
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -42,7 +41,7 @@ export function OTPToast({ otp, show, onClose }: OTPToastProps) {
 
   return (
     <div
-      className={`fixed top-6 right-6 z-50 transition-all duration-300 ease-out ${
+      className={`fixed top-6 right-6 z-1000 transition-all duration-300 ease-out ${
         isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
       }`}
     >

@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     const newUser: User = {
       id: crypto.randomUUID(),
       email: body.email.toLowerCase(),
-      password: body.password, // In production, hash this with bcrypt
+      password: body.password, // In production, this would be hashed with bcrypt
       referralCode: body.referralCode,
       verified: false,
       otp,
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     users.push(newUser);
     await writeUsers(users);
 
-    // In a real app, send OTP via email here
+    // In a real app, OTP would be sent via email here
     console.log(`OTP for ${body.email}: ${otp} (expires: ${otpExpiry})`);
 
     // Return success response
