@@ -28,7 +28,7 @@ const CustomUserIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
       cy="17.5"
       rx="7"
       ry="3.5"
-      stroke="#819099"
+      stroke="currentColor"
       strokeWidth="1.5"
       strokeLinejoin="round"
     />
@@ -36,7 +36,7 @@ const CustomUserIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
       cx="12"
       cy="7"
       r="4"
-      stroke="#819099"
+      stroke="currentColor"
       strokeWidth="1.5"
       strokeLinejoin="round"
     />

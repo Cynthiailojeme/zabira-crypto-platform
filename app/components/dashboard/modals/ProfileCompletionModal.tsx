@@ -12,6 +12,7 @@ import {
   ListItemDescription,
   IconContainer,
 } from "../../ui/modal";
+import { cn } from "../../ui/utils";
 
 interface ProfileCompletionProps {
   steps: {
@@ -58,27 +59,37 @@ export function ProfileCompletionModal({
 
       <ModalBody>
         <div className="space-y-4">
-          {steps.map((step, index) => (
-            <ListItem
-              key={step.id}
-              active={step.completed}
-              onClick={() => {
-                if (!step.completed) {
-                  step.action();
+          {steps.map((step, index) => {
+            const isDisabled = index !== 0 && !steps[index - 1].completed;
+
+            return (
+              <ListItem
+                key={step.id}
+                active={step.completed}
+                disabled={isDisabled}
+                className={cn(
+                  isDisabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:bg-gray-50"
+                )}
+                onClick={() => {
+                  if (!step.completed) {
+                    step.action();
+                  }
+                }}
+                icon={
+                  <IconContainer completed={step.completed}>
+                    <div className="text-2xl">
+                      <img src={icons[index]} alt={`${step.title} icon`} />
+                    </div>
+                  </IconContainer>
                 }
-              }}
-              icon={
-                <IconContainer completed={step.completed}>
-                  <div className="text-2xl">
-                    <img src={icons[index]} alt={`${step.title} icon`} />
-                  </div>
-                </IconContainer>
-              }
-            >
-              <ListItemTitle>{step.title}</ListItemTitle>
-              <ListItemDescription>{step.description}</ListItemDescription>
-            </ListItem>
-          ))}
+              >
+                <ListItemTitle>{step.title}</ListItemTitle>
+                <ListItemDescription>{step.description}</ListItemDescription>
+              </ListItem>
+            );
+          })}
         </div>
       </ModalBody>
     </Modal>

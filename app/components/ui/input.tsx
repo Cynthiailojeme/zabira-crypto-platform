@@ -40,8 +40,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
           <div className="relative group">
             {Icon && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none">
-                <Icon className="h-6 w-6 text-[#819099] transition-colors group-focus-within:text-[#0044EE]" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none text-[#819099] transition-colors group-focus-within:text-[#0044EE]">
+                <Icon className="h-6 w-6" />
               </div>
             )}
 

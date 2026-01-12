@@ -1,3 +1,7 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useFormik } from "formik";
 import {
   phoneVerificationSchema,
   verificationSchema,
@@ -9,13 +13,13 @@ import {
   ModalDescription,
   ModalBody,
 } from "../../ui/modal";
-import { useFormik } from "formik";
-import { useEffect, useState } from "react";
 import { OtpInput } from "../../ui/input-otp";
 import { Button } from "../../ui/button";
 import { ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
 import { PhoneInput } from "../../ui/phone-input";
 import MessageSwitcher from "../MessageSwitcher";
+
+type Option = "whatsapp" | "sms" | "";
 
 function VerifyOTP({
   phoneNo,
@@ -30,9 +34,7 @@ function VerifyOTP({
   const [active, setActive] = useState<Option>("");
 
   const formik = useFormik({
-    initialValues: {
-      otp: "",
-    },
+    initialValues: { otp: "" },
     validationSchema: verificationSchema,
     onSubmit: (values) => {
       console.log("Verifying OTP:", { phoneNo, ...values });
@@ -40,14 +42,11 @@ function VerifyOTP({
     },
   });
 
-  // Countdown
+  // Countdown timer
   useEffect(() => {
     if (timeLeft <= 0) return;
 
-    const timer = setInterval(() => {
-      setTimeLeft((t) => t - 1);
-    }, 1000);
-
+    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
@@ -59,11 +58,8 @@ function VerifyOTP({
   const handlePasteCode = async () => {
     try {
       const text = await navigator.clipboard.readText();
-      if (/^\d{6}$/.test(text)) {
-        formik.setFieldValue("otp", text);
-      }
+      if (/^\d{6}$/.test(text)) formik.setFieldValue("otp", text);
     } catch (err) {
-      // silently fail
       console.error("Failed to read clipboard contents: ", err);
     }
   };
@@ -99,7 +95,7 @@ function VerifyOTP({
       <div className="space-y-4">
         {timeLeft === 0 && (
           <div className="flex items-center gap-3 text-primary-text/70 font-medium text-sm tracking-[-0.0105rem]">
-            <span>Resend Via</span>{" "}
+            <span>Resend Via</span>
             <MessageSwitcher
               active={active}
               setActive={setActive}
@@ -107,6 +103,7 @@ function VerifyOTP({
             />
           </div>
         )}
+
         <div className="flex justify-between items-center">
           <Button
             type="button"
@@ -126,12 +123,8 @@ function VerifyOTP({
               className="bg-transparent px-1.5 py-1 text-sm text-primary-text/70 font-medium rounded-sm"
               onClick={() => setTimeLeft(300)}
             >
-              <>
-                Resend Code in{" "}
-                <span className="text-primary-blue">
-                  {formatTime(timeLeft)}
-                </span>
-              </>
+              Resend Code in{" "}
+              <span className="text-primary-blue">{formatTime(timeLeft)}</span>
             </button>
           )}
         </div>
@@ -156,25 +149,27 @@ interface VerifyPhoneNumberProps {
   handleCompletion: () => void;
 }
 
-type Option = "whatsapp" | "sms" | "";
-
 export function VerifyPhoneNumberModal({
   open,
   setOpen,
   handleCompletion,
 }: VerifyPhoneNumberProps) {
   const [active, setActive] = useState<Option>("whatsapp");
+  const [step, setStep] = useState<
+    "verify-phone-view" | "verify-code-view" | "change-phone-view"
+  >("verify-phone-view");
 
-  const [step, setStep] = useState("verify-phone-view");
   const formik = useFormik({
-    initialValues: {
-      phonenumber: "",
-    },
+    initialValues: { phonenumber: "" },
     validationSchema: phoneVerificationSchema,
-    onSubmit: (values) => {
-      setStep("verify-code-view");
-    },
+    onSubmit: () => setStep("verify-code-view"),
   });
+
+  const handlePhoneChangeSubmit = () => {
+    formik.validateForm().then((errors) => {
+      if (!errors.phonenumber) setStep("verify-code-view");
+    });
+  };
 
   return (
     <Modal open={open}>
@@ -189,6 +184,7 @@ export function VerifyPhoneNumberModal({
             Back
           </button>
         )}
+
         <ModalTitle>
           {step === "change-phone-view"
             ? "Change phone number"
@@ -196,25 +192,32 @@ export function VerifyPhoneNumberModal({
             ? "Enter verification code"
             : "Verify phone number"}
         </ModalTitle>
+
         <ModalDescription>
-          {step === "change-phone-view" ? (
-            "Please enter a phone number where you would like to receive the verification code"
-          ) : step === "verify-code-view" ? (
+          {step === "change-phone-view" &&
+            "Please enter a phone number where you would like to receive the verification code"}
+          {step === "verify-code-view" && (
             <div>
               Hello Boss, please enter the 6 digit code that was sent to{" "}
-              <span className="text-primary-blue font-medium">08012345678</span>
+              <span className="text-primary-blue font-medium">
+                {formik.values.phonenumber || "your phone number"}
+              </span>
             </div>
-          ) : (
-            "Please enter a phone number where you would like to receive the verification code"
           )}
+          {step === "verify-phone-view" &&
+            "Please enter a phone number where you would like to receive the verification code"}
         </ModalDescription>
       </ModalHeader>
 
       <ModalBody>
         <div className="space-y-4">
-          {step === "verify-phone-view" && (
+          {step !== "verify-code-view" && (
             <form
-              onSubmit={formik.handleSubmit}
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (step === "verify-phone-view") formik.handleSubmit();
+                else handlePhoneChangeSubmit();
+              }}
               className="w-full flex flex-col gap-4"
             >
               <div className="mt-2 mb-4">
@@ -226,9 +229,7 @@ export function VerifyPhoneNumberModal({
                 placeholder=""
                 {...formik.getFieldProps("phonenumber")}
                 value={formik.values.phonenumber}
-                onChange={(value) => {
-                  formik.setFieldValue("phonenumber", value);
-                }}
+                onChange={(value) => formik.setFieldValue("phonenumber", value)}
                 error={formik.touched.phonenumber && formik.errors.phonenumber}
               />
 
@@ -238,8 +239,12 @@ export function VerifyPhoneNumberModal({
                 variant="outline"
                 className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white"
               >
-                <ShieldCheck className="w-6 h-6" />
-                Verify
+                {step !== "change-phone-view" && (
+                  <ShieldCheck className="w-6 h-6" />
+                )}
+                {step === "change-phone-view"
+                  ? "Change Phone Number"
+                  : "Verify"}
               </Button>
             </form>
           )}
@@ -250,30 +255,6 @@ export function VerifyPhoneNumberModal({
               onChangePhoneNo={() => setStep("change-phone-view")}
               handleCompletion={handleCompletion}
             />
-          )}
-
-          {step === "change-phone-view" && (
-            <div className="space-y-6">
-              <PhoneInput
-                label="Phone Number"
-                placeholder=""
-                {...formik.getFieldProps("phonenumber")}
-                value={formik.values.phonenumber}
-                onChange={(value) => {
-                  formik.setFieldValue("phonenumber", value);
-                }}
-                error={formik.touched.phonenumber && formik.errors.phonenumber}
-              />
-
-              <Button
-                size="lg"
-                type="submit"
-                variant="outline"
-                className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white"
-              >
-                Change Phone Number
-              </Button>
-            </div>
           )}
         </div>
       </ModalBody>

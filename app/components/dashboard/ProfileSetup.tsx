@@ -7,7 +7,7 @@ export default function ProfileSetup({
   completedSteps: number;
   completeSetUp: () => void;
 }) {
-  const totalSteps = 5;
+  const totalSteps = 6;
   const progress = (completedSteps / totalSteps) * 100;
 
   return (
