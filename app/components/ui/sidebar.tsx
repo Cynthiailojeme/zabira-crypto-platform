@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, X } from "lucide-react";
+import { Bell, Menu, X, LogOut } from "lucide-react";
 import Link from "next/link";
+import { getCurrentUser, logout } from "@/app/utils/auth";
 
 export interface AppRoutes {
   name: string;
@@ -27,6 +28,29 @@ export const routes: AppRoutes[] = [
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setUserEmail(user.email);
+    }
+  }, []);
+
+  // Extract first name from email for greeting
+  const getFirstName = (email: string) => {
+    const name = email.split("@")[0];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
+  const handleLogout = () => {
+    setShowUserMenu(false);
+    setOpen(false);
+    if (confirm("Are you sure you want to logout?")) {
+      logout();
+    }
+  };
 
   return (
     <>
@@ -34,7 +58,7 @@ export const Sidebar: React.FC = () => {
       <div className="lg:hidden h-fit w-full z-50 fixed flex items-center justify-between p-5 border-b border-[#E0F1FF] bg-white">
         <div className="flex items-center gap-4">
           <button onClick={() => setOpen(true)}>
-            <Menu className="w-[1.62569rem] h-[1.62569rem" />
+            <Menu className="w-[1.62569rem] h-[1.62569rem]" />
           </button>
           <img
             src="./images/z-logo-dark.svg"
@@ -51,8 +75,47 @@ export const Sidebar: React.FC = () => {
             <Bell className="w-7 h-7" />
           </div>
 
-          <div className="h-8 w-8 flex justify-center items-center rounded-[2.25rem] bg-white border border-[#85C5FF]">
-            <img src="./icons/zabira.svg" alt="Zabira Logo" />
+          {/* Mobile User Avatar with Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="h-8 w-8 flex justify-center items-center rounded-[2.25rem] bg-white border border-[#85C5FF] hover:border-primary-blue transition-colors"
+            >
+              <img src="./icons/zabira.svg" alt="Zabira Logo" />
+            </button>
+
+            {/* Mobile User Dropdown */}
+            {showUserMenu && (
+              <>
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowUserMenu(false)}
+                />
+
+                {/* Menu */}
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="p-3 border-b border-gray-200">
+                    <p className="text-xs text-gray-500 font-medium">
+                      Signed in as
+                    </p>
+                    <p className="text-sm text-primary-text font-semibold truncate mt-0.5">
+                      {userEmail}
+                    </p>
+                  </div>
+
+                  <div className="p-2">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-primary-alert hover:bg-red-50 rounded-md transition-colors font-medium"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -77,11 +140,19 @@ export const Sidebar: React.FC = () => {
         `}
       >
         <div className="flex flex-col h-full py-6 px-4 overflow-y-auto scrollbar-hide">
-          {/* Mobile Close */}
-          <div className="md:hidden flex justify-end mb-4">
-            <button onClick={() => setOpen(false)}>
-              <X className="w-5 h-5" />
-            </button>
+          {/* Mobile Close & User Info */}
+          <div className="md:hidden mb-4">
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <p className="text-xs text-gray-500">Welcome back</p>
+                <p className="text-sm font-semibold text-primary-text truncate">
+                  {userEmail ? getFirstName(userEmail) : "User"}
+                </p>
+              </div>
+              <button onClick={() => setOpen(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <a href="/" className="hidden md:block">
@@ -105,7 +176,7 @@ export const Sidebar: React.FC = () => {
                     filter:
                       pathname === route.href
                         ? "brightness(0) saturate(100%) invert(21%) sepia(100%) saturate(6295%) hue-rotate(226deg) brightness(93%) contrast(104%)" // #0044EE
-                        : "brightness(0) saturate(100%) invert(66%) sepia(4%) saturate(450%) hue-rotate(202deg) brightness(98%) contrast(91%);", // #A1A1AA
+                        : "brightness(0) saturate(100%) invert(66%) sepia(4%) saturate(450%) hue-rotate(202deg) brightness(98%) contrast(91%)", // #A1A1AA
                   }}
                 />
                 <span
@@ -134,7 +205,7 @@ export const Sidebar: React.FC = () => {
                 filter:
                   pathname === "/settings"
                     ? "brightness(0) saturate(100%) invert(21%) sepia(100%) saturate(6295%) hue-rotate(226deg) brightness(93%) contrast(104%)" // #0044EE
-                    : "brightness(0) saturate(100%) invert(66%) sepia(4%) saturate(450%) hue-rotate(202deg) brightness(98%) contrast(91%);", // #A1A1AA
+                    : "brightness(0) saturate(100%) invert(66%) sepia(4%) saturate(450%) hue-rotate(202deg) brightness(98%) contrast(91%)", // #A1A1AA
               }}
             />
             <span
@@ -148,11 +219,22 @@ export const Sidebar: React.FC = () => {
             </span>
           </Link>
 
+          {/* Mobile Logout Button in Sidebar */}
+          <button
+            onClick={handleLogout}
+            className="md:hidden relative group rounded flex items-center transition-all duration-300 ease-out p-3 gap-3 mt-2 bg-red-50 hover:bg-red-100"
+          >
+            <LogOut className="w-4 h-4 text-primary-alert" />
+            <span className="text-sm font-medium text-primary-alert leading-5.25 whitespace-nowrap">
+              Logout
+            </span>
+          </button>
+
           <div className="my-5">
             <img src="./images/refer-banner.svg" alt="Refer and Win Banner" />
           </div>
 
-          <div className="flex flex-col  text-sm tracking-[-0.0105rem] px-6">
+          <div className="flex flex-col text-sm tracking-[-0.0105rem] px-6">
             <p className="text-[#819099] font-semibold mb-3">
               Download the Zabira App
             </p>

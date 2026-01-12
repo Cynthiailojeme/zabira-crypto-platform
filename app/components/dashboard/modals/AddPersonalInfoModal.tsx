@@ -9,11 +9,18 @@ import {
   ModalBody,
 } from "../../ui/modal";
 import { Input } from "../../ui/input";
-import { Calendar, ChevronDown, ShieldCheck, User } from "lucide-react";
+import {
+  AlertCircle,
+  Calendar,
+  ChevronDown,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import { useFormik } from "formik";
 import { personalInfoSchema } from "@/app/utils/validations";
 import { cn } from "../../ui/utils";
 import { Button } from "../../ui/button";
+import { getCurrentUser } from "@/app/utils/auth";
 
 const CustomUserIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
   <svg
@@ -55,6 +62,8 @@ export function AddPersonalInfoModal({
   handleCompletion,
 }: AddPersonalInfoProps) {
   const [reqMet, setReqMet] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -64,9 +73,46 @@ export function AddPersonalInfoModal({
       dob: "",
     },
     validationSchema: personalInfoSchema,
-    onSubmit: (values) => {
-      console.log("Form submitted:", values);
-      handleCompletion();
+    onSubmit: async (values) => {
+      setIsSubmitting(true);
+      setApiError(null);
+
+      try {
+        const user = getCurrentUser();
+        if (!user) {
+          setApiError("User not found");
+          return;
+        }
+
+        const response = await fetch("/api/profile/personal-info", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email,
+            username: values.username,
+            firstname: values.firstname,
+            lastname: values.lastname,
+            dob: values.dob || undefined,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setApiError(data.error || "Failed to save personal information");
+          return;
+        }
+
+        // Success!
+        handleCompletion();
+      } catch (error) {
+        console.error("Personal info error:", error);
+        setApiError("Network error. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
     },
   });
 
@@ -92,6 +138,16 @@ export function AddPersonalInfoModal({
             onSubmit={formik.handleSubmit}
             className="w-full flex flex-col gap-4"
           >
+            {/* API Error Display */}
+            {apiError && (
+              <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+                <AlertCircle className="w-5 h-5 text-primary-alert" />
+                <p className="text-sm font-medium text-primary-alert">
+                  {apiError}
+                </p>
+              </div>
+            )}
+
             {/* Username */}
             <div className="flex flex-col gap-3">
               <Input
@@ -105,6 +161,7 @@ export function AddPersonalInfoModal({
                     ? formik.errors.username
                     : undefined
                 }
+                disabled={isSubmitting}
               />
 
               <div className="flex items-center gap-2 text-sm text-primary-text/36">
@@ -144,6 +201,7 @@ export function AddPersonalInfoModal({
                   ? formik.errors.firstname
                   : undefined
               }
+              disabled={isSubmitting}
             />
 
             {/* Lastname */}
@@ -158,6 +216,7 @@ export function AddPersonalInfoModal({
                   ? formik.errors.lastname
                   : undefined
               }
+              disabled={isSubmitting}
             />
 
             {/* Date of Birth */}
@@ -167,7 +226,11 @@ export function AddPersonalInfoModal({
               icon={Calendar}
               rightIcon={ChevronDown}
               placeholder="Choose date of birth"
-              max={new Date().toISOString().split("T")[0]}
+              max={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                  .toISOString()
+                  .split("T")[0]
+              }
               value={formik.values.dob}
               onChange={formik.handleChange}
               name="dob"
@@ -176,17 +239,18 @@ export function AddPersonalInfoModal({
                   ? formik.errors.dob
                   : undefined
               }
+              disabled={isSubmitting}
             />
 
             <Button
               size="lg"
               type="submit"
               variant="outline"
-              disabled={!formik.isValid || !formik.dirty}
-              className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white"
+              disabled={!formik.isValid || !formik.dirty || isSubmitting}
+              className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white disabled:bg-[#F4F4F5] disabled:border-none disabled:text-primary-text/18"
             >
               <ShieldCheck className="w-6 h-6" />
-              Save
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </form>
         </div>

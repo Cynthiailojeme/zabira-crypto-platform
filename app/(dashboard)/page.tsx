@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Overview } from "../components/dashboard/Overview";
 import { Payments } from "../components/dashboard/Payments";
 import ProfileSetup from "../components/dashboard/ProfileSetup";
@@ -14,11 +15,46 @@ import { VerifyPhoneNumberModal } from "../components/dashboard/modals/VerifyPho
 import { AddPersonalInfoModal } from "../components/dashboard/modals/AddPersonalInfoModal";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState("");
   const [completedSteps, setCompletedSteps] = useState(1);
 
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [showCurrentModal, setShowCurrentModal] = useState("");
   const [successModal, setSucessModal] = useState("");
+
+  // Check if user is authenticated and verified
+  useEffect(() => {
+    const currentUser = localStorage.getItem("currentUser");
+
+    if (!currentUser) {
+      // No user logged in, redirect to signup
+      router.push("/signup");
+      return;
+    }
+
+    try {
+      const userData = JSON.parse(currentUser);
+
+      if (!userData.verified) {
+        // User exists but not verified, redirect to verify-email
+        router.push(
+          `/verify-email?email=${encodeURIComponent(userData.email)}`
+        );
+        return;
+      }
+
+      // User is verified, set email and continue
+      setUserEmail(userData.email);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      // Invalid data, redirect to signup
+      localStorage.removeItem("currentUser");
+      router.push("/signup");
+    }
+  }, [router]);
 
   const handleNextStep = (val: string) => {
     setShowProfileSetup(false);
@@ -80,6 +116,18 @@ export default function DashboardPage() {
     setShowCurrentModal("");
     setSucessModal(stepName);
   };
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary-blue border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-primary-text">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="w-full flex flex-col gap-6">

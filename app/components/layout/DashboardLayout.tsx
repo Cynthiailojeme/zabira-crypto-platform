@@ -1,14 +1,80 @@
-import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
-import { Header } from "../ui/header";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "../ui/sidebar";
+import { Header } from "../ui/header";
 
-const DashboardLayout = ({ children }: { children: ReactNode }) => {
-  const isLoggedIn = true; // Replace with actual authentication logic
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  redirectTo?: string;
+  requireVerified?: boolean;
+}
 
-  if (!isLoggedIn) {
-    localStorage.clear();
-    return <Navigate to="/signup" replace />;
+/**
+ * Protected Route Component
+ *
+ * Wraps components/pages that require authentication.
+ * Automatically redirects unauthenticated users to signup.
+ *
+ */
+export function ProtectedRoute({
+  children,
+  redirectTo = "/signup",
+  requireVerified = true,
+}: ProtectedRouteProps) {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const currentUser = localStorage.getItem("currentUser");
+
+        if (!currentUser) {
+          // No user logged in
+          router.push(redirectTo);
+          return;
+        }
+
+        const userData = JSON.parse(currentUser);
+
+        if (requireVerified && !userData.verified) {
+          // User not verified
+          router.push(
+            `/verify-email?email=${encodeURIComponent(userData.email)}`
+          );
+          return;
+        }
+
+        // User is authorized
+        setIsAuthorized(true);
+      } catch (error) {
+        console.error("Auth check error:", error);
+        localStorage.removeItem("currentUser");
+        router.push(redirectTo);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router, redirectTo, requireVerified]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary-blue border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-primary-text">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return null;
   }
 
   return (
@@ -23,6 +89,4 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       </div>
     </div>
   );
-};
-
-export default DashboardLayout;
+}

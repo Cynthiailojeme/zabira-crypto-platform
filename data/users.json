@@ -1,0 +1,50 @@
+[
+  {
+    "id": "e2a38dce-e6fa-436c-a31c-d7fdece037a7",
+    "email": "cynthiaezinne1+3@gmail.com",
+    "password": "Cynthia@2026",
+    "referralCode": "",
+    "verified": true,
+    "otp": "436210",
+    "otpExpiry": "2026-01-12T01:53:55.675Z",
+    "createdAt": "2026-01-12T01:47:46.688Z"
+  },
+  {
+    "id": "81c3489c-5848-42cb-8290-76aac76ceb4e",
+    "email": "cynthiaezinne1+2@gmail.com",
+    "password": "Cynthia@2026",
+    "referralCode": "",
+    "verified": false,
+    "otp": "153790",
+    "otpExpiry": "2026-01-12T02:41:28.843Z",
+    "createdAt": "2026-01-12T02:27:07.576Z"
+  },
+  {
+    "id": "49604f53-9000-43fa-85e1-00fd188116cd",
+    "email": "0bon@udasity.com",
+    "password": "Cynthia2.",
+    "referralCode": "",
+    "verified": false,
+    "otp": "777070",
+    "otpExpiry": "2026-01-12T02:50:32.228Z",
+    "createdAt": "2026-01-12T02:45:32.228Z"
+  },
+  {
+    "id": "cbaaa9b6-f787-4935-aefd-97ddcd3d3a4a",
+    "email": "cynthiaezinne1@gmail.com",
+    "password": "Cynthia@4",
+    "referralCode": "",
+    "verified": true,
+    "otp": "797088",
+    "otpExpiry": "2026-01-12T11:03:43.873Z",
+    "createdAt": "2026-01-12T10:19:24.771Z",
+    "phoneNumber": "+2349068350488",
+    "phoneOtp": "913170",
+    "phoneOtpExpiry": "2026-01-12T12:23:58.573Z",
+    "phoneVerified": true,
+    "username": "cynthiailojeme2",
+    "firstname": "Cynthia",
+    "lastname": "Ilojeme",
+    "dob": "2008-01-08"
+  }
+]
