@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/app/utils/auth";
 import { Overview } from "../components/dashboard/Overview";
 import { Payments } from "../components/dashboard/Payments";
 import ProfileSetup from "../components/dashboard/ProfileSetup";
@@ -14,6 +15,44 @@ import { DoMore } from "../components/dashboard/DoMore";
 import { VerifyPhoneNumberModal } from "../components/dashboard/modals/VerifyPhoneNumberModal";
 import { AddPersonalInfoModal } from "../components/dashboard/modals/AddPersonalInfoModal";
 
+// ============================================
+// PROGRESSION STORAGE HELPERS
+// ============================================
+
+const PROGRESSION_KEY = "dashboardProgression";
+
+interface StepData {
+  id: number;
+  title: string;
+  description: string;
+  completed: boolean;
+}
+
+interface ProgressionData {
+  completedSteps: number;
+  steps: StepData[];
+}
+
+function loadProgression(): ProgressionData | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const saved = localStorage.getItem(PROGRESSION_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveProgression(data: ProgressionData) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PROGRESSION_KEY, JSON.stringify(data));
+}
+
+// ============================================
+// MAIN DASHBOARD COMPONENT
+// ============================================
+
 export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
@@ -22,39 +61,7 @@ export default function DashboardPage() {
 
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [showCurrentModal, setShowCurrentModal] = useState("");
-  const [successModal, setSucessModal] = useState("");
-
-  // Check if user is authenticated and verified
-  useEffect(() => {
-    const currentUser = localStorage.getItem("currentUser");
-
-    if (!currentUser) {
-      // No user logged in, redirect to signup
-      router.push("/signup");
-      return;
-    }
-
-    try {
-      const userData = JSON.parse(currentUser);
-
-      if (!userData.verified) {
-        // User exists but not verified, redirect to verify-email
-        router.push(
-          `/verify-email?email=${encodeURIComponent(userData.email)}`
-        );
-        return;
-      }
-
-      // User is verified, set email and continue
-      setUserEmail(userData.email);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      // Invalid data, redirect to signup
-      localStorage.removeItem("currentUser");
-      router.push("/signup");
-    }
-  }, [router]);
+  const [successModal, setSuccessModal] = useState("");
 
   const handleNextStep = (val: string) => {
     setShowProfileSetup(false);
@@ -106,18 +113,76 @@ export default function DashboardPage() {
     },
   ]);
 
+  // ============================================
+  // LOAD AUTH & PROGRESSION ON MOUNT
+  // ============================================
+  useEffect(() => {
+    const user = getCurrentUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    if (!user.verified) {
+      router.push(`/verify-email?email=${encodeURIComponent(user.email)}`);
+      return;
+    }
+
+    // User is authenticated and verified
+    setUserEmail(user.email);
+
+    // Load saved progression
+    const savedProgression = loadProgression();
+    if (savedProgression) {
+      // Restore steps with actions
+      const restoredSteps = steps.map((step) => {
+        const savedStep = savedProgression.steps.find((s) => s.id === step.id);
+        if (savedStep) {
+          return { ...step, completed: savedStep.completed };
+        }
+        return step;
+      });
+
+      setSteps(restoredSteps);
+      setCompletedSteps(savedProgression.completedSteps);
+    }
+
+    setIsLoading(false);
+  }, [router]);
+
+  // ============================================
+  // MARK STEP AS COMPLETED
+  // ============================================
   const markStepCompleted = (stepId: number, stepName: string) => {
-    setSteps((prevSteps) =>
-      prevSteps.map((step) =>
-        step.id === stepId ? { ...step, completed: true } : step
-      )
+    const updatedSteps = steps.map((step) =>
+      step.id === stepId ? { ...step, completed: true } : step
     );
+
+    setSteps(updatedSteps);
     setCompletedSteps(stepId);
+
+    // Save progression to localStorage
+    const progressionData: ProgressionData = {
+      completedSteps: stepId,
+      steps: updatedSteps.map((s) => ({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+        completed: s.completed,
+      })),
+    };
+
+    saveProgression(progressionData);
+
+    // Show success modal
     setShowCurrentModal("");
-    setSucessModal(stepName);
+    setSuccessModal(stepName);
   };
 
-  // Show loading state while checking auth
+  // ============================================
+  // LOADING STATE
+  // ============================================
   if (isLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
@@ -129,6 +194,9 @@ export default function DashboardPage() {
     );
   }
 
+  // ============================================
+  // RENDER DASHBOARD
+  // ============================================
   return (
     <main className="w-full flex flex-col gap-6">
       <Overview />
@@ -155,14 +223,12 @@ export default function DashboardPage() {
         setOpen={setShowProfileSetup}
       />
 
-      {/* Modals */}
       <VerifyPhoneNumberModal
         open={showCurrentModal === "verify-phone-no"}
         setOpen={setShowCurrentModal}
         handleCompletion={() => markStepCompleted(2, "phone-added")}
       />
 
-      {/* Modals */}
       <AddPersonalInfoModal
         open={showCurrentModal === "add-personal-info"}
         setOpen={setShowCurrentModal}
@@ -181,9 +247,9 @@ export default function DashboardPage() {
             : "Your personal information has been added successfully."
         }
         open={successModal !== ""}
-        onClose={() => setSucessModal("")}
+        onClose={() => setSuccessModal("")}
         handleDoneAction={() => {
-          setSucessModal("");
+          setSuccessModal("");
           const modalSequence: Record<number, string> = {
             2: "add-personal-info",
             3: "upgrade-kyc",

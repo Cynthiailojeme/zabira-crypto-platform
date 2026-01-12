@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  ShieldCheck,
+  AlertCircle,
+} from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Button } from "@/app/components/ui/button";
@@ -12,6 +19,7 @@ import {
 } from "@/app/components/auth/PasswordStrength";
 import { signupSchema } from "@/app/utils/validations";
 import { OTPToast } from "@/app/components/dashboard/OTPToast";
+import Link from "next/link";
 
 const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
   <svg
@@ -22,7 +30,14 @@ const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
     fill="none"
   >
     <circle cx="6" cy="4" r="2" stroke="currentColor" strokeWidth="1.5" />
-    <ellipse cx="6" cy="8" rx="3" ry="2" stroke="currentColor" strokeWidth="1.5" />
+    <ellipse
+      cx="6"
+      cy="8"
+      rx="3"
+      ry="2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
     <circle cx="18" cy="16" r="2" stroke="currentColor" strokeWidth="1.5" />
     <path
       d="M22 12C22 6.47715 17.5228 2 12 2M12 22C6.47715 22 2 17.5228 2 12"
@@ -30,7 +45,14 @@ const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
       strokeWidth="1.5"
       strokeLinecap="round"
     />
-    <ellipse cx="18" cy="20" rx="3" ry="2" stroke="currentColor" strokeWidth="1.5" />
+    <ellipse
+      cx="18"
+      cy="20"
+      rx="3"
+      ry="2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
   </svg>
 );
 
@@ -222,6 +244,9 @@ export default function SignUp() {
       "/verify-email?email=" + encodeURIComponent(userEmail);
   };
 
+  const showPasswordChecker =
+    formik.touched.password || formik.values.password.length > 0;
+
   return (
     <div className="w-full max-w-full lg:max-w-125 flex flex-col items-center gap-6 mb-20">
       <form
@@ -235,8 +260,9 @@ export default function SignUp() {
 
         {/* API Error Display */}
         {apiError && (
-          <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-            <p className="text-sm text-red-600">{apiError}</p>
+          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+            <AlertCircle className="w-5 h-5 text-primary-alert" />
+            <p className="text-sm font-medium text-primary-alert">{apiError}</p>
           </div>
         )}
 
@@ -286,13 +312,12 @@ export default function SignUp() {
               onRightIconClick={() => setShowPassword(!showPassword)}
               disabled={isSubmitting}
             />
-
-            {formik.touched.password ? (
+            {showPasswordChecker ? (
               <>
                 <PasswordStrengthIndicator password={formik.values.password} />
                 <ValidationRequirements password={formik.values.password} />
               </>
-            ) : null}
+            ) : null}{" "}
           </div>
 
           <Input
@@ -394,9 +419,13 @@ export default function SignUp() {
       {/* Login Link */}
       <div className="text-center text-sm">
         <span className="text-gray-600">Already have an account? </span>
-        <a href="#" className="text-primary-blue hover:underline font-medium">
+
+        <Link
+          href="/login"
+          className="text-primary-blue hover:underline font-medium"
+        >
           Login
-        </a>
+        </Link>
       </div>
 
       {/* NDPR Badge */}

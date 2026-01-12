@@ -48,9 +48,10 @@ export function logout(): void {
 
   localStorage.removeItem("currentUser");
   localStorage.removeItem("pendingVerification");
+  localStorage.removeItem("dashboardProgression");
 
-  // Redirect to signup page
-  window.location.href = "/signup";
+  // Redirect to login page
+  window.location.href = "/login";
 }
 
 /**
@@ -82,7 +83,7 @@ export function requireAuth(): User | null {
 
   if (!user) {
     // Not logged in at all
-    window.location.href = "/signup";
+    window.location.href = "/login";
     return null;
   }
 

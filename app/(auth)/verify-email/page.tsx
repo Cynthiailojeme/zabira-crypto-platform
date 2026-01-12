@@ -158,7 +158,7 @@ function VerifyOTP({
         )}
 
         {/* Success Message Display */}
-        {resendMessage && (
+        {resendMessage && !apiError && (
           <div
             className="p-3 flex items-center gap-2 rounded-lg bg-primary-green/50 border border-primary-green"
             style={{
@@ -213,7 +213,7 @@ function VerifyOTP({
 
           <button
             type="button"
-            disabled={timeLeft > 0 || isResending}
+            // disabled={timeLeft > 0 || isResending}
             className="bg-transparent px-1.5 py-1 text-sm text-primary-text/70 font-medium rounded-sm disabled:cursor-not-allowed"
             onClick={handleResendOTP}
           >

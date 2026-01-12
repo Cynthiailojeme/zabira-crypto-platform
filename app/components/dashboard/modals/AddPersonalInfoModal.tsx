@@ -105,6 +105,21 @@ export function AddPersonalInfoModal({
           return;
         }
 
+        // Store user data in localStorage or context
+        if (typeof window !== "undefined") {
+          const currentUser = localStorage.getItem("currentUser");
+          if (currentUser) {
+            const updatedUser = JSON.stringify({
+              ...JSON.parse(currentUser),
+              username: values.username,
+              firstname: values.firstname,
+              lastname: values.lastname,
+              dob: values.dob || undefined,
+            });
+            localStorage.setItem("currentUser", updatedUser);
+          }
+        }
+
         // Success!
         handleCompletion();
       } catch (error) {

@@ -20,7 +20,7 @@ interface ProtectedRouteProps {
  */
 export function ProtectedRoute({
   children,
-  redirectTo = "/signup",
+  redirectTo = "/login",
   requireVerified = true,
 }: ProtectedRouteProps) {
   const router = useRouter();
