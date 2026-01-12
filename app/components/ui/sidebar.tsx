@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Bell, Menu, X } from "lucide-react";
+import Link from "next/link";
 
 export interface AppRoutes {
   name: string;
@@ -40,7 +41,6 @@ export const Sidebar: React.FC = () => {
             alt="Zabira Logo"
             className="h-6"
           />
-          
         </div>
 
         <div className="flex items-center gap-6">
@@ -67,6 +67,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Sidebar */}
       <nav
+        key={pathname}
         className={`
           fixed lg:static inset-y-0 left-0 z-50
           w-[16rem] bg-white border border-foreground
@@ -89,20 +90,23 @@ export const Sidebar: React.FC = () => {
 
           <div className="mt-0 lg:mt-9">
             {routes.map((route) => (
-              <a
-                href={route?.href as string}
+              <Link
+                href={route?.href}
+                onClick={() => setOpen(false)} // close mobile menu
                 key={route?.href}
                 className={`${
                   pathname === route?.href ? "bg-[#EBF0FF]" : "bg-transparent"
                 } relative group rounded flex items-center transition-all duration-300 ease-out p-3 gap-3`}
               >
                 <img
-                  src={route?.icon}
-                  className={`${
-                    pathname === route?.href
-                      ? "text-primary-green"
-                      : "text-primary-text/36"
-                  } w-4 h-4 font-medium transition-all duration-300 ease-out`}
+                  src={route.icon}
+                  className="w-4 h-4 transition-all duration-300 ease-out"
+                  style={{
+                    filter:
+                      pathname === route.href
+                        ? "brightness(0) saturate(100%) invert(21%) sepia(100%) saturate(6295%) hue-rotate(226deg) brightness(93%) contrast(104%)" // #0044EE
+                        : "brightness(0) saturate(100%) invert(66%) sepia(4%) saturate(450%) hue-rotate(202deg) brightness(98%) contrast(91%);", // #A1A1AA
+                  }}
                 />
                 <span
                   className={`${
@@ -113,11 +117,11 @@ export const Sidebar: React.FC = () => {
                 >
                   {route?.name}
                 </span>
-              </a>
+              </Link>
             ))}
           </div>
 
-          <a
+          <Link
             onClick={() => setOpen(false)}
             href="/settings"
             className={`${
@@ -126,11 +130,12 @@ export const Sidebar: React.FC = () => {
           >
             <img
               src="./icons/settings.svg"
-              className={`${
-                pathname === "/settings"
-                  ? "text-primary-green"
-                  : "text-primary-text/36"
-              } w-4 h-4 font-medium transition-all duration-300 ease-out`}
+              style={{
+                filter:
+                  pathname === "/settings"
+                    ? "brightness(0) saturate(100%) invert(21%) sepia(100%) saturate(6295%) hue-rotate(226deg) brightness(93%) contrast(104%)" // #0044EE
+                    : "brightness(0) saturate(100%) invert(66%) sepia(4%) saturate(450%) hue-rotate(202deg) brightness(98%) contrast(91%);", // #A1A1AA
+              }}
             />
             <span
               className={`${
@@ -141,7 +146,7 @@ export const Sidebar: React.FC = () => {
             >
               Settings
             </span>
-          </a>
+          </Link>
 
           <div className="my-5">
             <img src="./images/refer-banner.svg" alt="Refer and Win Banner" />
