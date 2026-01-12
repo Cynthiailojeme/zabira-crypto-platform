@@ -20,7 +20,7 @@ export default function AuthLayout({
             alt="Zabira Logo"
             className="flex lg:hidden"
           />
-          <div className="min-w-fit h-9 border border-gray-200 bg-white rounded-2xl text-sm flex items-center divide-x divide-gray-200 shadow-sm">
+          <div className="h-9 border border-gray-200 bg-white rounded-2xl text-sm flex items-center divide-x divide-gray-200 shadow-sm">
             <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 transition-colors min-w-fit">
               <Calculator className="w-4 h-4" /> Check Rates
             </button>
