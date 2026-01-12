@@ -20,6 +20,7 @@ import {
 import { signupSchema } from "@/app/utils/validations";
 import { OTPToast } from "@/app/components/dashboard/OTPToast";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
   <svg
@@ -153,6 +154,7 @@ export const promoSlides = [
 ];
 
 export default function SignUp() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -218,13 +220,15 @@ export default function SignUp() {
 
           // Auto-redirect after 3 seconds (or user can close toast to redirect immediately)
           setTimeout(() => {
-            window.location.href =
-              "/verify-email?email=" + encodeURIComponent(values.email);
+            router.push(
+              "/verify-email?email=" + encodeURIComponent(values.email)
+            );
           }, 3000);
         } else {
           // If no debug OTP (production), redirect immediately
-          window.location.href =
-            "/verify-email?email=" + encodeURIComponent(values.email);
+          router.push(
+            "/verify-email?email=" + encodeURIComponent(values.email)
+          );
         }
       } catch (error) {
         console.error("Signup error:", error);
@@ -240,8 +244,8 @@ export default function SignUp() {
   const handleToastClose = () => {
     setShowOTPToast(false);
     // Redirect to verification page when toast is closed
-    window.location.href =
-      "/verify-email?email=" + encodeURIComponent(userEmail);
+    router.push(
+      "/verify-email?email=" + encodeURIComponent(userEmail))
   };
 
   const showPasswordChecker =

@@ -429,7 +429,7 @@ export function VerifyEmailContent() {
               type="button"
               onClick={() => {
                 // route user to dashboard
-                window.location.href = "/";
+                router.push("/")
               }}
               className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white mt-6 lg:mt-14"
             >
