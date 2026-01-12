@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     users.push(newUser);
     await writeUsers(users);
 
-    // In a real app, you would send OTP via email here
+    // In a real app, send OTP via email here
     console.log(`OTP for ${body.email}: ${otp} (expires: ${otpExpiry})`);
 
     // Return success response
