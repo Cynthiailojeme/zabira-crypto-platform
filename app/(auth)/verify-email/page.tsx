@@ -214,7 +214,7 @@ function VerifyOTP({
 
           <button
             type="button"
-            // disabled={timeLeft > 0 || isResending}
+            disabled={timeLeft > 0 || isResending}
             className="bg-transparent px-1.5 py-1 text-sm text-primary-text/70 font-medium rounded-sm disabled:cursor-not-allowed"
             onClick={handleResendOTP}
           >

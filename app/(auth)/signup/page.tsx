@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import {
   Eye,
   EyeOff,
-  Mail,
-  Lock,
   ShieldCheck,
   AlertCircle,
 } from "lucide-react";
@@ -21,41 +19,7 @@ import { signupSchema } from "@/app/utils/validations";
 import { OTPToast } from "@/app/components/dashboard/OTPToast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-const ReferallIcon: React.FC<React.SVGProps<SVGSVGElement>> = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    <circle cx="6" cy="4" r="2" stroke="currentColor" strokeWidth="1.5" />
-    <ellipse
-      cx="6"
-      cy="8"
-      rx="3"
-      ry="2"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    />
-    <circle cx="18" cy="16" r="2" stroke="currentColor" strokeWidth="1.5" />
-    <path
-      d="M22 12C22 6.47715 17.5228 2 12 2M12 22C6.47715 22 2 17.5228 2 12"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-    <ellipse
-      cx="18"
-      cy="20"
-      rx="3"
-      ry="2"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    />
-  </svg>
-);
+import { LockIcon, MailIcon, ReferallIcon } from "@/app/utils/icons";
 
 export const promoSlides = [
   {
@@ -244,8 +208,7 @@ export default function SignUp() {
   const handleToastClose = () => {
     setShowOTPToast(false);
     // Redirect to verification page when toast is closed
-    router.push(
-      "/verify-email?email=" + encodeURIComponent(userEmail))
+    router.push("/verify-email?email=" + encodeURIComponent(userEmail));
   };
 
   const showPasswordChecker =
@@ -290,7 +253,7 @@ export default function SignUp() {
             label="Email"
             type="email"
             placeholder="Type your email"
-            icon={Mail}
+            icon={MailIcon}
             {...formik.getFieldProps("email")}
             error={
               formik.touched.email && formik.errors.email
@@ -305,7 +268,7 @@ export default function SignUp() {
               label="Password"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              icon={Lock}
+              icon={LockIcon}
               rightIcon={showPassword ? EyeOff : Eye}
               {...formik.getFieldProps("password")}
               error={

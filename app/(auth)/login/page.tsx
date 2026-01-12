@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import {
   Eye,
   EyeOff,
-  Mail,
-  Lock,
   ShieldCheck,
   AlertCircle,
 } from "lucide-react";
@@ -16,6 +14,7 @@ import { loginSchema } from "@/app/utils/validations";
 import { promoSlides } from "../signup/page";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { LockIcon, MailIcon } from "@/app/utils/icons";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -70,7 +69,7 @@ export default function Login() {
             setApiError(data.error);
             // Optionally redirect to verification page
             setTimeout(() => {
-              router.push(`/verify?email=${encodeURIComponent(data.email)}`);
+              router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
             }, 2000);
             return;
           }
@@ -133,7 +132,7 @@ export default function Login() {
             label="Email"
             type="email"
             placeholder="Type your email"
-            icon={Mail}
+            icon={MailIcon}
             {...formik.getFieldProps("email")}
             error={
               formik.touched.email && formik.errors.email
@@ -148,7 +147,7 @@ export default function Login() {
               label="Password"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              icon={Lock}
+              icon={LockIcon}
               rightIcon={showPassword ? EyeOff : Eye}
               {...formik.getFieldProps("password")}
               error={
