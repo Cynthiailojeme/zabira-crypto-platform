@@ -151,7 +151,7 @@ function VerifyOTP({
       <form onSubmit={formik.handleSubmit} className="space-y-8">
         {/* API Error Display */}
         {apiError && (
-          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/10 border border-primary-alert">
             <AlertCircle className="w-5 h-5 text-primary-alert" />
             <p className="text-sm font-medium text-primary-alert">{apiError}</p>
           </div>
@@ -438,7 +438,7 @@ export function VerifyPhoneNumberModal({
             >
               {/* API Error Display */}
               {apiError && (
-                <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+                <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/10 border border-primary-alert">
                   <AlertCircle className="w-5 h-5 text-primary-alert" />
                   <p className="text-sm font-medium text-primary-alert">
                     {apiError}
