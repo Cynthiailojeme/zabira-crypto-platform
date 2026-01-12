@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bell, Menu, X, LogOut } from "lucide-react";
 import Link from "next/link";
 import { getCurrentUser, logout } from "@/app/utils/auth";
+import { LogoutPopup } from "../dashboard/LogoutPopup";
 
 export interface AppRoutes {
   name: string;
@@ -30,6 +31,7 @@ export const Sidebar: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -44,12 +46,11 @@ export const Sidebar: React.FC = () => {
     return name.charAt(0).toUpperCase() + name.slice(1);
   };
 
-  const handleLogout = () => {
-    setShowUserMenu(false);
+  const handleConfirmLogout = () => {
+    logout();
     setOpen(false);
-    if (confirm("Are you sure you want to logout?")) {
-      logout();
-    }
+    setShowLogoutModal(false);
+    setShowUserMenu(false);
   };
 
   return (
@@ -106,7 +107,7 @@ export const Sidebar: React.FC = () => {
 
                   <div className="p-2">
                     <button
-                      onClick={handleLogout}
+                      onClick={() => setShowLogoutModal(true)}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-primary-alert hover:bg-red-50 rounded-md transition-colors font-medium"
                     >
                       <LogOut className="w-4 h-4" />
@@ -221,7 +222,7 @@ export const Sidebar: React.FC = () => {
 
           {/* Mobile Logout Button in Sidebar */}
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutModal(true)}
             className="md:hidden relative group rounded flex items-center transition-all duration-300 ease-out p-3 gap-3 mt-2 bg-red-50 hover:bg-red-100"
           >
             <LogOut className="w-4 h-4 text-primary-alert" />
@@ -248,6 +249,13 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
       </nav>
+
+      {showLogoutModal && (
+        <LogoutPopup
+          cancel={() => setShowLogoutModal(false)}
+          logout={handleConfirmLogout}
+        />
+      )}
     </>
   );
 };

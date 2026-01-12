@@ -105,6 +105,12 @@ export function AddPersonalInfoModal({
           return;
         }
 
+        // Store user data in localStorage or context
+        if (typeof window !== "undefined") {
+          const loggedUser = JSON.stringify(data.user);
+          localStorage.setItem("currentUser", loggedUser);
+        }
+
         // Success!
         handleCompletion();
       } catch (error) {

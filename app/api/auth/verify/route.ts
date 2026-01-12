@@ -1,37 +1,5 @@
-// app/api/auth/verify/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-
-interface User {
-  id: string;
-  email: string;
-  password: string;
-  referralCode?: string;
-  verified: boolean;
-  otp: string;
-  otpExpiry: string;
-  createdAt: string;
-}
-
-const getDataFilePath = () => {
-  return path.join(process.cwd(), "data", "users.json");
-};
-
-async function readUsers(): Promise<User[]> {
-  try {
-    const filePath = getDataFilePath();
-    const fileContent = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(fileContent);
-  } catch (error) {
-    return [];
-  }
-}
-
-async function writeUsers(users: User[]): Promise<void> {
-  const filePath = getDataFilePath();
-  await fs.writeFile(filePath, JSON.stringify(users, null, 2));
-}
+import { sql } from "@vercel/postgres";
 
 // Helper to generate 6-digit OTP
 function generateOTP(): string {
@@ -41,9 +9,6 @@ function generateOTP(): string {
 // POST - Verify OTP
 export async function POST(request: NextRequest) {
   try {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
     const body = await request.json();
     const { email, otp } = body;
 
@@ -54,7 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate OTP format (6 digits)
     if (!/^\d{6}$/.test(otp)) {
       return NextResponse.json(
         { error: "Invalid OTP format. Must be 6 digits." },
@@ -62,37 +26,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Read users
-    const users = await readUsers();
+    const result = await sql`
+      SELECT *, (otp_expiry > NOW()) as is_valid 
+      FROM users 
+      WHERE email = ${email.toLowerCase()}
+    `;
 
-    // Find user by email
-    const userIndex = users.findIndex(
-      (user) => user.email.toLowerCase() === email.toLowerCase()
-    );
-
-    if (userIndex === -1) {
+    if (result.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const user = users[userIndex];
+    const user = result.rows[0];
 
-    // Check if already verified
     if (user.verified) {
       return NextResponse.json(
-        {
-          message: "Email already verified",
-          user: {
-            id: user.id,
-            email: user.email,
-            verified: true,
-          },
-        },
+        { message: "Email already verified" },
         { status: 200 }
       );
     }
 
-    // Check if OTP has expired
-    if (new Date(user.otpExpiry) < new Date()) {
+    // Check if OTP has expired using DB comparison
+    if (!user.is_valid) {
       return NextResponse.json(
         { error: "OTP has expired. Please request a new one." },
         { status: 400 }
@@ -107,16 +61,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark user as verified
-    users[userIndex].verified = true;
-    await writeUsers(users);
+    // Mark as verified
+    await sql`
+      UPDATE users SET verified = true WHERE email = ${email.toLowerCase()}
+    `;
 
     return NextResponse.json(
       {
         message: "Email verified successfully",
         user: {
-          id: users[userIndex].id,
-          email: users[userIndex].email,
+          id: user.id,
+          email: user.email,
           verified: true,
         },
       },
@@ -134,9 +89,6 @@ export async function POST(request: NextRequest) {
 // GET - Resend OTP
 export async function GET(request: NextRequest) {
   try {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     const searchParams = request.nextUrl.searchParams;
     const email = searchParams.get("email");
 
@@ -144,16 +96,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const users = await readUsers();
-    const userIndex = users.findIndex(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
+    const result = await sql`
+      SELECT * FROM users WHERE email = ${email.toLowerCase()}
+    `;
 
-    if (userIndex === -1) {
+    if (result.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const user = users[userIndex];
+    const user = result.rows[0];
 
     if (user.verified) {
       return NextResponse.json(
@@ -162,16 +113,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Generate new OTP and update expiry
     const newOtp = generateOTP();
     const newExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-    users[userIndex].otp = newOtp;
-    users[userIndex].otpExpiry = newExpiry;
-    await writeUsers(users);
+    await sql`
+      UPDATE users 
+      SET otp = ${newOtp}, otp_expiry = ${newExpiry}
+      WHERE email = ${email.toLowerCase()}
+    `;
 
     // In a real app, OTP would be sent via email here
-    console.log(`New OTP for ${email}: ${newOtp} (expires: ${newExpiry})`);
+    console.log(`Resend OTP for ${email}: ${newOtp}`);
 
     return NextResponse.json(
       {
@@ -195,8 +147,6 @@ export async function GET(request: NextRequest) {
 // PUT - Change email (generates new OTP for new email)
 export async function PUT(request: NextRequest) {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     const body = await request.json();
     const { oldEmail, newEmail } = body;
 
@@ -207,7 +157,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
       return NextResponse.json(
@@ -216,49 +165,46 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const users = await readUsers();
+    const userResult = await sql`
+      SELECT * FROM users WHERE email = ${oldEmail.toLowerCase()}
+    `;
 
-    // Find user with old email
-    const userIndex = users.findIndex(
-      (u) => u.email.toLowerCase() === oldEmail.toLowerCase()
-    );
-
-    if (userIndex === -1) {
+    if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if new email already exists
-    const emailExists = users.some(
-      (u) => u.email.toLowerCase() === newEmail.toLowerCase()
-    );
+    // Check if new email exists
+    const emailCheck = await sql`
+      SELECT * FROM users WHERE email = ${newEmail.toLowerCase()}
+    `;
 
-    if (emailExists) {
+    if (emailCheck.rows.length > 0) {
       return NextResponse.json(
         { error: "This email is already registered" },
         { status: 409 }
       );
     }
 
-    // Update email and generate new OTP
     const newOtp = generateOTP();
     const newExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-    users[userIndex].email = newEmail.toLowerCase();
-    users[userIndex].otp = newOtp;
-    users[userIndex].otpExpiry = newExpiry;
-    users[userIndex].verified = false; // Reset verification status
-
-    await writeUsers(users);
+    await sql`
+      UPDATE users 
+      SET email = ${newEmail.toLowerCase()}, 
+          otp = ${newOtp}, 
+          otp_expiry = ${newExpiry},
+          verified = false
+      WHERE email = ${oldEmail.toLowerCase()}
+    `;
 
     return NextResponse.json(
       {
         message: "Email updated successfully. New OTP sent.",
         user: {
-          id: users[userIndex].id,
-          email: users[userIndex].email,
-          verified: users[userIndex].verified,
+          id: userResult.rows[0].id,
+          email: newEmail.toLowerCase(),
+          verified: false,
         },
-        // In development only - to be removed in production
         debug: {
           otp: newOtp,
         },

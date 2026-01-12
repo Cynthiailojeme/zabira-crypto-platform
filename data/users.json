@@ -46,5 +46,29 @@
     "firstname": "Cynthia",
     "lastname": "Ilojeme",
     "dob": "2008-01-08"
+  },
+  {
+    "id": "b84ea363-39cf-4f46-82b8-81ad61612688",
+    "email": "cynthiaezinne9@gmail.com",
+    "password": "Cynthia@2",
+    "referralCode": "",
+    "verified": true,
+    "otp": "970513",
+    "otpExpiry": "2026-01-12T12:29:41.235Z",
+    "createdAt": "2026-01-12T12:23:35.417Z"
+  },
+  {
+    "id": "2d6bfade-f657-4512-90bd-eee6444e4ebe",
+    "email": "olamiakange@test.com",
+    "password": "Test@user1",
+    "referralCode": "",
+    "verified": true,
+    "otp": "912068",
+    "otpExpiry": "2026-01-12T13:02:57.805Z",
+    "createdAt": "2026-01-12T12:57:57.806Z",
+    "phoneNumber": "+2349068350488",
+    "phoneOtp": "958775",
+    "phoneOtpExpiry": "2026-01-12T13:08:03.145Z",
+    "phoneVerified": true
   }
 ]

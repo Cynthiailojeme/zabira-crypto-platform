@@ -1,20 +1,7 @@
-// app/api/auth/signup/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { sql } from "@vercel/postgres";
 import crypto from "crypto";
-
-// Type definitions
-interface User {
-  id: string;
-  email: string;
-  password: string; // In real app, this would be hashed
-  referralCode?: string;
-  verified: boolean;
-  otp: string;
-  otpExpiry: string;
-  createdAt: string;
-}
+import bcrypt from "bcryptjs";
 
 interface SignupRequest {
   email: string;
@@ -23,51 +10,45 @@ interface SignupRequest {
   agreeToTerms: boolean;
 }
 
-// Helper to get the data file path
-const getDataFilePath = () => {
-  return path.join(process.cwd(), "data", "users.json");
-};
-
-// Helper to read users from file
-async function readUsers(): Promise<User[]> {
-  try {
-    const filePath = getDataFilePath();
-    const fileContent = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(fileContent);
-  } catch (error) {
-    // If file doesn't exist, return empty array
-    return [];
-  }
-}
-
-// Helper to write users to file
-async function writeUsers(users: User[]): Promise<void> {
-  const filePath = getDataFilePath();
-  const dirPath = path.dirname(filePath);
-
-  // Ensure directory exists
-  try {
-    await fs.access(dirPath);
-  } catch {
-    await fs.mkdir(dirPath, { recursive: true });
-  }
-
-  await fs.writeFile(filePath, JSON.stringify(users, null, 2));
-}
-
-// Helper to generate 6-digit OTP
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Initialize table if it doesn't exist
+async function initTable() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        referral_code TEXT,
+        verified BOOLEAN DEFAULT FALSE,
+        otp TEXT,
+        otp_expiry TIMESTAMP,
+        phone_number TEXT,
+        phone_otp TEXT,
+        phone_otp_expiry TIMESTAMP,
+        phone_verified BOOLEAN DEFAULT FALSE,
+        username TEXT,
+        firstname TEXT,
+        lastname TEXT,
+        dob DATE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+  } catch (error) {
+    // Table might already exist, that's okay
+    console.log("Table init:", error);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Simulate network delay (realistic API behavior)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await initTable();
 
     const body: SignupRequest = await request.json();
 
-    // Validation
     if (!body.email || !body.password) {
       return NextResponse.json(
         { error: "Email and password are required" },
@@ -82,7 +63,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(body.email)) {
       return NextResponse.json(
@@ -91,7 +71,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Password validation (basic)
     if (body.password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
@@ -99,54 +78,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Read existing users
-    const users = await readUsers();
+    const email = body.email.toLowerCase();
 
-    // Check if email already exists
-    const existingUser = users.find(
-      (user) => user.email.toLowerCase() === body.email.toLowerCase()
-    );
+    // Check if email exists
+    const existingUser = await sql`
+      SELECT * FROM users WHERE email = ${email}
+    `;
 
-    if (existingUser) {
+    if (existingUser.rows.length > 0) {
       return NextResponse.json(
         { error: "An account with this email already exists" },
         { status: 409 }
       );
     }
 
-    // Generate OTP and set expiry (5 minutes from now)
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+
     const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    const userId = crypto.randomUUID();
 
-    // Create new user
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      email: body.email.toLowerCase(),
-      password: body.password, // In production, this would be hashed with bcrypt
-      referralCode: body.referralCode,
-      verified: false,
-      otp,
-      otpExpiry,
-      createdAt: new Date().toISOString(),
-    };
+    // Insert user with hashed password
+    await sql`
+      INSERT INTO users (id, email, password, referral_code, verified, otp, otp_expiry)
+      VALUES (${userId}, ${email}, ${hashedPassword}, ${
+      body.referralCode || null
+    }, false, ${otp}, ${otpExpiry.toISOString()})
+    `;
 
-    // Add user to array and save
-    users.push(newUser);
-    await writeUsers(users);
-
-    // In a real app, OTP would be sent via email here
-    console.log(`OTP for ${body.email}: ${otp} (expires: ${otpExpiry})`);
-
-    // Return success response
     return NextResponse.json(
       {
         message: "Account created successfully. OTP sent to your email.",
         user: {
-          id: newUser.id,
-          email: newUser.email,
-          verified: newUser.verified,
+          id: userId,
+          email: email,
+          verified: false,
         },
-        // In development only - to be removed in production
         debug: {
           otp: otp,
         },
