@@ -152,7 +152,7 @@ function ModalBody({ children, className, scrollable = true }: ModalBodyProps) {
     <div
       className={cn(
         "px-6 pb-6",
-        scrollable && "max-h-[80vh] overflow-y-auto",
+        scrollable && "xs:max-h-[40vh] max-h-[60vh] lg:max-h-[80vh] overflow-y-auto",
         className
       )}
     >

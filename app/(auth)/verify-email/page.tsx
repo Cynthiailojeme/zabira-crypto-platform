@@ -151,7 +151,7 @@ function VerifyOTP({
       <form onSubmit={formik.handleSubmit} className="space-y-8">
         {/* API Error Display */}
         {apiError && (
-          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/10 border border-primary-alert">
             <AlertCircle className="w-5 h-5 text-primary-alert" />
             <p className="text-sm font-medium text-primary-alert">{apiError}</p>
           </div>
@@ -160,9 +160,10 @@ function VerifyOTP({
         {/* Success Message Display */}
         {resendMessage && !apiError && (
           <div
-            className="p-3 flex items-center gap-2 rounded-lg bg-primary-green/50 border border-primary-green"
+            className="p-3 flex items-center gap-2 rounded-lg bg-primary-green/10 border border-primary-green"
             style={{
               borderColor: "#1dc660",
+              backgroundColor: "rgba(29, 198, 96, 0.1)",
             }}
           >
             <CheckCircle className="w-5 h-5 text-primary-green" />
@@ -338,7 +339,7 @@ function ChangeEmail({
     <>
       <form onSubmit={formik.handleSubmit} className="space-y-6">
         {apiError && (
-          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/50 border border-primary-alert">
+          <div className="p-3 flex items-center gap-2 rounded-lg bg-primary-alert/10 border border-primary-alert">
             <AlertCircle className="w-5 h-5 text-primary-alert" />
             <p className="text-sm font-medium text-primary-alert">{apiError}</p>
           </div>
@@ -429,7 +430,7 @@ export function VerifyEmailContent() {
               type="button"
               onClick={() => {
                 // route user to dashboard
-                router.push("/")
+                router.push("/");
               }}
               className="w-full gap-2 bg-primary-text text-white rounded-md hover:bg-primary-text/90 hover:text-white mt-6 lg:mt-14"
             >

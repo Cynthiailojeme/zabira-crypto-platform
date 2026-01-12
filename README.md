@@ -70,20 +70,28 @@ The app focuses on correctness, usability, and scalability, using server-side AP
 
 ---
 
-## Setup and Deployment
+## Clone the repository
 
-### Local Setup
-
-Follow the steps below to run the application locally:
-
-1. **Clone the repository**
-```bash
+```
 git clone https://github.com/Cynthiailojeme/zabira-crypto-platform.git
-cd zabira-crypto-platform
+```
 
+## Installation
+
+```
 npm install
-# or
-yarn install
+```
+
+## Configuration
+
+```
+vercel env pull .env.development.local
+```
+
+## Development
+
+```
+npm run dev
 ```
 
 ## GitHub Repository
