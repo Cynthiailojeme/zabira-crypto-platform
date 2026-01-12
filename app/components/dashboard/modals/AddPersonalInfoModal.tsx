@@ -107,8 +107,17 @@ export function AddPersonalInfoModal({
 
         // Store user data in localStorage or context
         if (typeof window !== "undefined") {
-          const loggedUser = JSON.stringify(data.user);
-          localStorage.setItem("currentUser", loggedUser);
+          const currentUser = localStorage.getItem("currentUser");
+          if (currentUser) {
+            const updatedUser = JSON.stringify({
+              ...JSON.parse(currentUser),
+              username: values.username,
+              firstname: values.firstname,
+              lastname: values.lastname,
+              dob: values.dob || undefined,
+            });
+            localStorage.setItem("currentUser", updatedUser);
+          }
         }
 
         // Success!
