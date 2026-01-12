@@ -11,7 +11,10 @@ export default function ProfileSetup({
   const progress = (completedSteps / totalSteps) * 100;
 
   return (
-    <div className="flex p-4 items-start lg:items-center gap-4 lg:gap-6 justify-between rounded-xl border-2 border-[#A3D4FF] bg-[#D6ECFF]">
+    <div
+      onClick={() => completeSetUp()}
+      className="flex p-4 items-start lg:items-center gap-4 lg:gap-6 justify-between rounded-xl border-2 border-[#A3D4FF] bg-[#D6ECFF]"
+    >
       {/* Progress Circle */}
       <div className="flex items-center gap-4 lg:gap-6">
         <div className="relative w-14 h-14 shrink-0">
@@ -59,7 +62,7 @@ export default function ProfileSetup({
       </div>
 
       <button onClick={() => completeSetUp()} className="lg:hidden flex">
-        <ChevronRight className="h-4 w-4 text-primary-text/36" />
+        <ChevronRight className="h-5 w-5 text-primary-text/36" />
       </button>
 
       {/* CTA Button */}
